@@ -1,0 +1,230 @@
+%\VignetteEngine{knitr::knitr}
+% !Rnw weave = knitr
+%\VignetteIndexEntry{MESgenCov: An R Package for ...}
+
+\documentclass[11pt]{article}
+\usepackage[left=2.5cm, top=2.5cm, right=2.5cm, bottom=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,array}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{cite}
+\usepackage{colortbl}
+\usepackage{comment}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{pdflscape}
+\usepackage{subcaption}
+\usepackage[table]{xcolor}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage[normalem]{ulem}
+\usepackage{wrapfig}
+
+
+\title{MESgenCov: An R Package for creating covariance matrices from NADP monitor data}
+\author{Hessa Al-Thani$^1$ and Jon Lee\\[0.35cm]
+  \small{University of Michigan, Department of Industrial, Operations Engineering, Ann Arbor, MI}\\[0cm]\textbf{\small{$^1$hessa.k.h9@gmail.com}}
+}
+\date{\textbf{MESgenCov} version \Sexpr{packageDescription("MESgenCov")$Version}  }
+%
+
+\begin{document}
+
+<<setup, include=FALSE, cache=FALSE>>=
+library(knitr)
+@
+<<include=FALSE>>=
+library(MESgenCov)
+@
+
+\maketitle
+
+\begin{abstract}
+  We present an R package for fitting multivariate climate data and extracting an entropy model. Our approach does not fit a spatial model, but rather uses the maximum-entropy sampling (MES) approach instead. We allow for multiple functionalities for modeling and model assessment. The package uses data from the NADP/NTN (National Atmospheric Deposition Program / National Trends Network) on their set of more than 370 monitoring sites, 1978-present. The user specifies the sites, pollutants and time period desired, fits a user-controlled univariate model, and produces a covariance matrix for use by MES algorithms.
+
+\end{abstract}
+
+\section{MES problem description}
+
+The maximum-entropy sampling problem has been applied to many domains where the objective is to decide on the most informative subset $S$ from a set of $N$ variables. This is done by maximizing the log determinant of the covariance matrix for some $S \subseteq N$. In this package we use the data gethered by the NADP on acidic deposits at sites across the US. For this instance of the MES problem the sites make up the n-dimensional covariance matrix.
+%%add a bit on generalized getCov after finishing the function
+
+\section{NADP data description}
+
+The National Atmospheric Deposition Program (NADP) maintains the National Trends Network (NTN), this network measures deposits in precipitation at sites across the United States. Our package makes use of the weekly data measuring the mg/L of pollutants like sulfate in sampled rainfall. We also use the daily data measuring precipitation at each site. Both datasets are available in the package and can be loaded respectively as
+
+
+<<chunk1, include=TRUE>>=
+ data("weeklyCSV")
+ data("preDailyCSV")
+@
+
+Below is a snapshot of the weekly data, a full description of the data can be obtained at \href{http://nadp.slh.wisc.edu/data/ntn/meta/ntn-weekly-Meta.pdf}{NADP NTN weekly meta}. For a full description of the daily precipitation data go to \href{http://nadp.slh.wisc.edu/data/ntn/meta/ntn-daily-Meta.pdf}{NADP NTN daily meta}. The datasets can also be viewed using
+
+<<chunk2,include=TRUE>>=
+  weeklyCSV[1:6,1:6]
+@
+
+\section{MESgenCov implementation}
+
+ The \textbf{MESgenCov} package contains functions in the \texttt{S3} class to create the covariance matrix from the desired subset of NADP data. The function getCov() returns a covariance matrix, a list of univariate model summaries, and a table of normality tests produced internally by the MVN R package. The covariance matrix is produced from a subset of the NADP NTN data that is sepecified by the user. For sites with missing data getCov will fill in predicted values based on the univariate model for each site. To avoid sites with a small sample size for the specified time-frame the function getSites outputs a vector of the sites with the largest sample of data for a given time-frame and measured pollutant. To find sites that are far-away from eachother but have at least some specified sample size the function maxDistSites() can be used.
+
+  \subsection{getCov}
+
+  getCov is by far the largest function and it has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
+
+  %%table
+
+  <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
+  text_tbl <- data.frame(
+  Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd", "outliersDate", "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k","p"),
+  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods (e.g. month 1, month 2) to exclude from analysis", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model" ,"Integer, see univariate model"
+  )
+  )
+@
+
+<<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
+library(magrittr)
+library(kableExtra)
+    kable(text_tbl, format = "latex", booktabs = T) %>%
+    kable_styling(full_width = F) %>%
+    column_spec(1, bold = T, color = "black") %>%
+    column_spec(2, width = "30em") %>%
+        kable_styling(latex_options = "striped")
+@
+
+<<chunckCovMult,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,NULL,NULL,NULL,
+         FALSE,NULL,"SO4",TRUE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+@
+%%add figure of code ^^
+
+<<chunckCovMultOut,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,NULL,c(1,2,3,4),NULL,
+         FALSE,NULL,"SO4",TRUE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+@
+%%add figure of code ^^
+<<chunckCovSite,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
+         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3,1)
+@
+%%
+
+%%make a better model for OH71
+<<chunckCovSiteModel,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
+         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3,1)
+@
+%%
+%%get rid of outliers
+<<chunckCovSiteOut,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
+         TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+@
+
+%bottom code should be based on actual outliers, make sure to change accordingly!
+<<chunckCovSiteOutremoved,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
+         c(1,"OH71"),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+@
+
+
+
+<<chunckCovPlotALL,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
+         c("OH71",1),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+@
+
+%%%%Parsing results
+<<chunkCovResult,include=TRUE,eval=TRUE>>=
+  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
+                   c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
+                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+  round(result$cov,digits = 4)
+@
+
+%%%%Parsing results
+<<chunkCovResultuni,include=TRUE,eval=TRUE>>=
+  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
+                   c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
+                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+  result$univariateTest
+@
+
+%%%%Parsing results
+<<chunkListModResult,include=TRUE,eval=TRUE>>=
+  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
+                   c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),
+                   NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+  sites <- result$sites
+  il = match(c("OH71","NH02"),sites)
+  result$listMod[il]
+@
+
+Other options: write mat file and output all MVN analysis done by the MVN package.
+
+  \subsection{Functions for getting a vector of sites}
+
+<<getSites1,include=TRUE,eval=TRUE>>=
+  result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","")
+  result$finalList
+@
+
+<<getSites1region,include=TRUE,eval=TRUE>>=
+  result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","NE")
+  result$finalList
+@
+Other options for region "W","S","N". **Include figure that divides the regions.**
+<<maxDistSites1,include=TRUE,eval=TRUE>>=
+  maxDistSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4",1)
+@
+
+\section{Methodology}
+  \subsection{NADP data processing}
+  We process the data in an identical way to earlier attempts to use the data to solve an instance of the MES problem in the field of environmental statistics. In the paper "Using Entropy in the Redesign of an Environmentl Monitoring Network" by %\cite{Guttorp}
+  ...the authors analyze the levels of sulfate concentrations by adding up weekly values of mg/L of sulfate and dividing the monthly total by total precipitation in that month, to get monthly values of sulfate concentration \color{blue}(unit).\color{black}
+      \begin{align*}
+        s &= \text{start date of recorded data}\\
+        e &= \text{end date of recorded data} \\
+        yrm &= \text{year, month} \\
+        p_i &= \text{precipitation value on day $i$}
+    \end{align*}
+
+    $$P_{s,e} = \sum_{i=s}^e{p_i} $$
+
+    $$\text{Monthly average sulfate values}_{yrm} = \dfrac{\sum_{e \in yrm}^{}{sd_{e}}}{\sum_{e\in yrm}{P_{s,e}}}$$
+
+    It should be noted that Precipitation for days when there is no SO$_4$ weekly value is stored as part of the volume for the month but should be ignored because this artificially dilutes concentrations levels. \color{black} In **citep** they use the following model to deseasonalize and detrend the data set of log transformed monthly sulfate concentration values.
+
+    \begin{align}
+         \mu(s_i,t) = \beta_{i1} + \beta_{i2}t + \beta_{i3}\cos\bigg(\frac{2\pi}{12}\bigg)t + \beta_{i4}\sin\bigg          (\frac{2\pi }{12}\bigg)t
+    \end{align}
+
+  We found that this model did well in normalizing certain cites but some sites like "MD13" and "NC03" didn't do as well. Instead we fit a different model described in the next section.%also show figures for sites
+
+  \subsection{The univariate model}
+  %%Confirm that we should not write about what we tries, just what worked
+  %%i.e. don't write about ARIMA model
+
+  Through a few experiments we saw that odd powers of trigonometric functions fit the data well but different sites fitted better with different powers of $\sin (\frac{2t\pi}{12})$. In which case we would have had to fit a non-linear regression, to avoid this we use the fact that $\cos^p(t)$ has the following identities:
+  \begin{align}
+    \cos^3(t) & = \frac{3}{4}\cos(t) + \frac{1}{4}\cos(3t) \\
+    \cos^5(t) & = \frac{5}{8}\cos(t) + \frac{5}{16}\cos(3t) + \frac{1}{16}\cos(5t)
+  \end{align}
+
+Then we can fit the data at each site using:
+
+  \[\mu(s_i,t) = \beta_{1} + \sum_{i=1}^{r}\beta_{i}t^i + \sum_{j=1}^{k}\beta_{j3}\cos\bigg(\frac{2\pi tj}{seas}\bigg) \tag{5}\]
+
+We also added the flexibility of deciding the periodicity of the function, the user can now alter the input $seas$ to change the period of the model.
+
+
+\bibliography{NADPstatsH}
+
+\end{document}
+
+

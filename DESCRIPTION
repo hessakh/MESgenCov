@@ -1,0 +1,20 @@
+Package: MESgenCov
+Type: Package
+Title: Generates input for the MES problem
+Version: 0.1.0
+Author: Hessa Al-Thani [aut, cre]
+	Jon Lee        [aut]
+Maintainer: Hessa Al-Thani <hessa.k.h9@gmail.com>
+Depends: R (>= 3.5.0)
+Encoding: UTF-8
+LazyData: true
+Imports: MVN, stringr, lubridate, EnvStats, rmatio, kableExtra
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Description: Performs multivariate normality tests and graphical approaches and
+    implements multivariate outlier detection and univariate normality of marginal
+    distributions through plots and tests, and performs multivariate Box-Cox transformation 
+License: GPL (>= 2)
+RoxygenNote: 6.1.1

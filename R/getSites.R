@@ -8,7 +8,7 @@
 #' @param optR         String, option of region "N","NE","S","W",""
 #' @return             Returns list of sites that have the largest amount of data for the given dates and compounds
 #' @export
-#' @examples getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","")
+#' @examples getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","N")
 
 getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
 #tic()

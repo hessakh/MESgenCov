@@ -26,5 +26,5 @@ Returns list of sites that have the largest amount of data for the given dates a
 returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
 }
 \examples{
-getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","")
+getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","N")
 }

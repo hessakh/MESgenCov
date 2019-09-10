@@ -1,9 +1,9 @@
-Package: MESgenCov
+Package: MESgenCov2
 Type: Package
 Title: Generates input for the MES problem
 Version: 0.1.0
 Author: Hessa Al-Thani [aut, cre]
-	Jon Lee        [aut]
+	      Jon Lee        [aut]
 Maintainer: Hessa Al-Thani <hessa.k.h9@gmail.com>
 Depends: R (>= 3.5.0)
 Encoding: UTF-8

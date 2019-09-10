@@ -29,16 +29,17 @@
 \author{Hessa Al-Thani$^1$ and Jon Lee\\[0.35cm]
   \small{University of Michigan, Department of Industrial, Operations Engineering, Ann Arbor, MI}\\[0cm]\textbf{\small{$^1$hessa.k.h9@gmail.com}}
 }
-\date{\textbf{MESgenCov} version \Sexpr{packageDescription("MESgenCov")$Version}  }
+\date{\textbf{MESgenCov} \Sexpr{packageDescription("NADPstatsH")$Version}  }
 %
 
 \begin{document}
 
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
+library(MESgenCov2)
 @
 <<include=FALSE>>=
-library(MESgenCov)
+
 @
 
 \maketitle

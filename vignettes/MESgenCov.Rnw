@@ -25,11 +25,11 @@
 \usepackage{wrapfig}
 
 
-\title{MESgenCov: An R Package for creating covariance matrices from NADP monitor data}
-\author{Hessa Al-Thani$^1$ and Jon Lee\\[0.35cm]
-  \small{University of Michigan, Department of Industrial, Operations Engineering, Ann Arbor, MI}\\[0cm]\textbf{\small{$^1$hessa.k.h9@gmail.com}}
+\title{MESgenCov: An R Package for generating covariance matrices from precipitation chemistry data}
+\author{Hessa Al-Thani$^1$ \qquad Jon Lee$^2$\\[0.35cm]
+  {\small Dept. of Industrial and Operations Engineering, Univ. of Michigan, Ann Arbor, MI 48105 USA }\\[0.35cm]{\small{$^1$hessa.k.h9@gmail.com}} \qquad {\small{$^2$jonxlee@umich.edu}}
 }
-\date{\textbf{MESgenCov} \Sexpr{packageDescription("NADPstatsH")$Version}  }
+\date{\textbf{MESgenCov} \Sexpr{packageDescription("MESgenCov2")$Version}  }
 %
 
 \begin{document}
@@ -45,18 +45,34 @@ library(MESgenCov2)
 \maketitle
 
 \begin{abstract}
-  We present an R package for fitting multivariate climate data and extracting an entropy model. Our approach does not fit a spatial model, but rather uses the maximum-entropy sampling (MES) approach instead. We allow for multiple functionalities for modeling and model assessment. The package uses data from the NADP/NTN (National Atmospheric Deposition Program / National Trends Network) on their set of more than 370 monitoring sites, 1978-present. The user specifies the sites, pollutants and time period desired, fits a user-controlled univariate model, and produces a covariance matrix for use by MES algorithms.
+  We present an R package for temporally fitting multivariate precipitation chemistry data and extracting a covariance martrix
+for use in MES (maximum-entropy) sampling. In our approach, we do not fit spatial models. Rather,
+correlations between monitoring sites and between different chemicals are handled through an entropy model.
+ We provide multiple functionalities for modeling and model assessment. The package uses data from the NADP/NTN (National Atmospheric Deposition Program / National Trends Network) on their set of more than 370 monitoring sites, 1978--present. The user specifies the sites, chemicals and time period desired, fits a user-controlled univariate model for each site and chemical selected, and produces a covariance matrix for use by MES algorithms.
 
 \end{abstract}
 
-\section{MES problem description}
+\section{The MES problem}
 
-The maximum-entropy sampling problem has been applied to many domains where the objective is to decide on the most informative subset $S$ from a set of $N$ variables. This is done by maximizing the log determinant of the covariance matrix for some $S \subseteq N$. In this package we use the data gethered by the NADP on acidic deposits at sites across the US. For this instance of the MES problem the sites make up the n-dimensional covariance matrix.
+The MES (maximum-entropy sampling) problem (see \cite{ShewryWynn,SebWynn,FedorovLee,LeeEnv}) has been applied to many domains where the objective is to determine a most informative subset $S$, of presepcified size $s$, from a set of $n$ Gaussian variables $N$. This is done by seeking to maximize the (log) determinant of the covariance matrix for some $S \subseteq N$ with $|S|=s$ (see \cite{KLQ,LeeConstrained,AFLW_Using,LeeWilliams_ILP,HLW,AnstreicherLee_Masked,BurerLee,AnstreicherBQPEntropy,linx}). A key area of application has been in environmental montoring (see \cite{Zidek1,Zidek2,Zidek3}, for example).
+In this R package we use  precipitation chemistry data
+(ammonium,
+calcium,
+chloride,
+hydrogen,
+ magnesium,
+ nitrate,
+pH,
+ potassium,
+  sodium, and
+sulfate) gathered by the NADP (National Atmospheric Deposition Program) at over 250 sites across the U.S.A. (see \cite{NADPNTN}).
+For these instances of the MES problem, $n$ \emph{user-specified} site/chemical pairs comprise $N$.
 %%add a bit on generalized getCov after finishing the function
 
 \section{NADP data description}
 
-The National Atmospheric Deposition Program (NADP) maintains the National Trends Network (NTN), this network measures deposits in precipitation at sites across the United States. Our package makes use of the weekly data measuring the mg/L of pollutants like sulfate in sampled rainfall. We also use the daily data measuring precipitation at each site. Both datasets are available in the package and can be loaded respectively as
+The NADP maintains the NTN (National Trends Network); this network measures the chemistry of precipitation at monitoring sites across the
+U.S.A. Our R package makes use of the weekly data measuring  mg/L of chemicals, such as sulfates, in collected precipitation. We also use the daily data measuring precipitation at each site. Both datasets are available in our package and can be loaded respectively as
 
 
 <<chunk1, include=TRUE>>=
@@ -64,7 +80,7 @@ The National Atmospheric Deposition Program (NADP) maintains the National Trends
  data("preDailyCSV")
 @
 
-Below is a snapshot of the weekly data, a full description of the data can be obtained at \href{http://nadp.slh.wisc.edu/data/ntn/meta/ntn-weekly-Meta.pdf}{NADP NTN weekly meta}. For a full description of the daily precipitation data go to \href{http://nadp.slh.wisc.edu/data/ntn/meta/ntn-daily-Meta.pdf}{NADP NTN daily meta}. The datasets can also be viewed using
+Below is a snapshot of the weekly data; a full description of the data can be obtained at \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-weekly-Meta.pdf}{NADP NTN weekly meta}. For a full description of the daily precipitation data, see \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-daily-Meta.pdf}{NADP NTN daily meta}. The datasets can also be viewed using
 
 <<chunk2,include=TRUE>>=
   weeklyCSV[1:6,1:6]
@@ -80,7 +96,7 @@ Below is a snapshot of the weekly data, a full description of the data can be ob
 
   %%table
 
-  <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
+  <<message=FALSE, echo=FALSE, warning=FALSE, eval=FALSE>>=
   text_tbl <- data.frame(
   Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd", "outliersDate", "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k","p"),
   Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods (e.g. month 1, month 2) to exclude from analysis", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model" ,"Integer, see univariate model"
@@ -88,7 +104,7 @@ Below is a snapshot of the weekly data, a full description of the data can be ob
   )
 @
 
-<<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
+<<message=FALSE, echo=FALSE, warning=FALSE, eval=FALSE>>=
 library(magrittr)
 library(kableExtra)
     kable(text_tbl, format = "latex", booktabs = T) %>%
@@ -141,7 +157,7 @@ library(kableExtra)
 @
 
 %%%%Parsing results
-<<chunkCovResult,include=TRUE,eval=TRUE>>=
+<<chunkCovResult,include=TRUE,eval=FALSE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
                    FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
@@ -149,7 +165,7 @@ library(kableExtra)
 @
 
 %%%%Parsing results
-<<chunkCovResultuni,include=TRUE,eval=TRUE>>=
+<<chunkCovResultuni,include=TRUE,eval=FALSE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
                    FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
@@ -157,7 +173,7 @@ library(kableExtra)
 @
 
 %%%%Parsing results
-<<chunkListModResult,include=TRUE,eval=TRUE>>=
+<<chunkListModResult,include=TRUE,eval=FALSE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),
                    NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
@@ -170,17 +186,17 @@ Other options: write mat file and output all MVN analysis done by the MVN packag
 
   \subsection{Functions for getting a vector of sites}
 
-<<getSites1,include=TRUE,eval=TRUE>>=
+<<getSites1,include=TRUE,eval=FALSE>>=
   result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","")
   result$finalList
 @
 
-<<getSites1region,include=TRUE,eval=TRUE>>=
+<<getSites1region,include=TRUE,eval=FALSE>>=
   result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","NE")
   result$finalList
 @
 Other options for region "W","S","N". **Include figure that divides the regions.**
-<<maxDistSites1,include=TRUE,eval=TRUE>>=
+<<maxDistSites1,include=TRUE,eval=FALSE>>=
   maxDistSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4",1)
 @
 
@@ -223,7 +239,11 @@ Then we can fit the data at each site using:
 
 We also added the flexibility of deciding the periodicity of the function, the user can now alter the input $seas$ to change the period of the model.
 
+\section*{Acknowledgments} J. Lee was funded by the
+Air Force Office of Scientific Research (Complex Networks program), FA9550-19-1-0175.
+H. Al-Thani was funded by the Qatar National Research Fund (Graduate Sponsorship Research Program).
 
+\bibliographystyle{alpha}
 \bibliography{NADPstatsH}
 
 \end{document}

@@ -88,11 +88,11 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
 
 \section{MESgenCov implementation}
 
- The \textbf{MESgenCov} package contains functions in the \texttt{S3} class to create the covariance matrix from the desired subset of NADP data. The function getCov() returns a covariance matrix, a list of univariate model summaries, and a table of normality tests produced internally by the MVN R package. The covariance matrix is produced from a subset of the NADP NTN data that is sepecified by the user. For sites with missing data getCov will fill in predicted values based on the univariate model for each site. To avoid sites with a small sample size for the specified time-frame the function getSites outputs a vector of the sites with the largest sample of data for a given time-frame and measured pollutant. To find sites that are far-away from eachother but have at least some specified sample size the function maxDistSites() can be used.
+ The \textbf{MESgenCov} package contains functions in the \texttt{S3} class to create a covariance matrix from the desired subset of NADP data. The function getCov() returns a covariance matrix, a list of univariate model summaries, and a table of normality tests produced internally by the MVN R package. The covariance matrix is produced from a subset of the NADP NTN data that is specified by the user. For sites with missing data, getCov() will fill in predicted values based on the univariate model for each site. To avoid sites with a small sample size for the specified time-frame, the function getSites() outputs a vector of the sites with the largest sample of data for a given time-frame and measured chemical. To find sites that are spatially ``spread out'' but have at least some specified sample size, the function maxDistSites() can be used.
 
   \subsection{getCov}
 
-  getCov is by far the largest function and it has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
+  getCov() is by far the most complicated function, and it has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
 
   %%table
 

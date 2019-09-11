@@ -88,11 +88,11 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
 
 \section{MESgenCov implementation}
 
- The \textbf{MESgenCov} package contains functions in the \texttt{S3} class to create a covariance matrix from the desired subset of NADP data. The function getCov() returns a covariance matrix, a list of univariate model summaries, and a table of normality tests produced internally by the MVN R package. The covariance matrix is produced from a subset of the NADP NTN data that is specified by the user. For sites with missing data, getCov() will fill in predicted values based on the univariate model for each site. To avoid sites with a small sample size for the specified time-frame, the function getSites() outputs a vector of the sites with the largest sample of data for a given time-frame and measured chemical. To find sites that are spatially ``spread out'' but have at least some specified sample size, the function maxDistSites() can be used.
+ The \textbf{MESgenCov} package contains functions in the \texttt{S3} class to create a covariance matrix from the desired subset of NADP data. The function \verb;getCov(); returns a covariance matrix, a list of univariate model summaries, and a table of normality tests produced internally by the MVN R package. The covariance matrix is produced from a subset of the NADP NTN data that is specified by the user. For sites with missing data, \verb;getCov(); will fill in predicted values based on the univariate model for each site. To avoid sites with a small sample size for the specified time-frame, the function \verb;getSites(); outputs a vector of the sites with the largest sample of data for a given time-frame and measured chemical. To find sites that are spatially ``spread out'' but have at least some specified sample size, the function \verb;maxDistSites(); can be used.
 
   \subsection{getCov}
 
-  getCov() is by far the most complicated function, and it has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
+  \verb;getCov(); is by far the most complicated function, and it has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
 
   %%table
 
@@ -202,8 +202,8 @@ Other options for region "W","S","N". **Include figure that divides the regions.
 
 \section{Methodology}
   \subsection{NADP data processing}
-  We process the data in an identical way to earlier attempts to use the data to solve an instance of the MES problem in the field of environmental statistics. In the paper "Using Entropy in the Redesign of an Environmentl Monitoring Network" by %\cite{Guttorp}
-  ...the authors analyze the levels of sulfate concentrations by adding up weekly values of mg/L of sulfate and dividing the monthly total by total precipitation in that month, to get monthly values of sulfate concentration \color{blue}(unit).\color{black}
+  We process the data in an identical way to earlier attempts to use the data to solve an instance of the MES problem in the field of environmental statistics. \cite{Zidek3}
+ analyzes the levels of sulfate concentrations by adding up weekly values of mg/L of sulfate and dividing the monthly total by total precipitation in that month, to get monthly values of sulfate concentration \color{blue}(unit).\color{black}
       \begin{align*}
         s &= \text{start date of recorded data}\\
         e &= \text{end date of recorded data} \\

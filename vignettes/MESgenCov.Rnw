@@ -96,7 +96,7 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
 
   %%table
 
-  <<message=FALSE, echo=FALSE, warning=FALSE, eval=FALSE>>=
+  <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
   text_tbl <- data.frame(
   Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd", "outliersDate", "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k","p"),
   Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods (e.g. month 1, month 2) to exclude from analysis", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model" ,"Integer, see univariate model"
@@ -104,7 +104,7 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
   )
 @
 
-<<message=FALSE, echo=FALSE, warning=FALSE, eval=FALSE>>=
+<<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
 library(magrittr)
 library(kableExtra)
     kable(text_tbl, format = "latex", booktabs = T) %>%
@@ -115,19 +115,19 @@ library(kableExtra)
 @
 
 <<chunckCovMult,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,NULL,NULL,NULL,
+  getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,NULL,NULL,
          FALSE,NULL,"SO4",TRUE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
 @
 %%add figure of code ^^
 
 <<chunckCovMultOut,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,NULL,c(1,2,3,4),NULL,
-         FALSE,NULL,"SO4",TRUE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+  getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,c(1,2,3),NULL,
+         FALSE,NULL,"SO4",TRUE,TRUE,"OH49",FALSE,FALSE,12,1,3,1)
 @
 %%add figure of code ^^
 <<chunckCovSite,include=TRUE,eval=FALSE>>=
   getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
-         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3,1)
+         FALSE,NULL,"SO4",FALSE,TRUE,"IL11",FALSE,FALSE,12,1,3,1)
 @
 %%
 
@@ -265,7 +265,7 @@ Air Force Office of Scientific Research (Complex Networks program), FA9550-19-1-
 H. Al-Thani was funded by the Qatar National Research Fund (Graduate Sponsorship Research Program).
 
 \bibliographystyle{alpha}
-\bibliography{NADPstatsH}
+\bibliography{MESgenCov2}
 
 \end{document}
 

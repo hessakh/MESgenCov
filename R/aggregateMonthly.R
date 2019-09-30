@@ -1,14 +1,25 @@
 aggregateMonthly <-
-function (binary,site,siObs,obs,obsi){#binary con or pH
-   	    sitem <- data.frame(matrix(ncol=0, nrow=0))
+function (binary,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
+   	  sitem <- data.frame(matrix(ncol=3, nrow=totT))
+	    yrm        <- site[1,5]
+	    strtYrMo   <- strtoi(strtYrMo)
+	    sitem[1,1] <- strtYrMo
+	    mStrt      <- ((strtYrMo) - floor(strtYrMo/100)*100)
+	    yrdiff     <- (floor(yrm/100)- floor(strtYrMo/100))
+	    mdiff      <- (yrm - floor(yrm/100)*100) - ((strtYrMo) - floor(strtYrMo/100)*100)
+	    diffYrm    <- 12*yrdiff + mdiff
 
-	    yrm <- site[1,5]
-	    sitem[1,1] <- yrm
-	    sitem[1,2] <- 1   #t
-	    sitem[1,3] <- 0   #SO4 vol
+	    sitem[,2]  <- 1:totT   #t
+      #fill in yrmonth
+	    for(i in 1:totT){
+	      sitem[i,1] <- strtYrMo + 100*(floor((i+mStrt-2)/12)) + ((i+mStrt-2)%%12)
+	      sitem[i,3] <- NA
+	    }
+      #fill in deposit values
+	    sitem[diffYrm + 1 ,3] <- 0   #SO4 vol
 	    lyrm <- site[dim(site)[1],5] #last month
 
-	    j = 1
+	    j = diffYrm + 1
 	    c <- 1 #counter of weeks in month
 	    ma <- site[1,7 + siObs] #monthly aggregate
 
@@ -37,7 +48,7 @@ function (binary,site,siObs,obs,obsi){#binary con or pH
 		      }
 		    }
     	}else{
-	    for (i in 2:dim(site)[1]){
+	    for (i in j:dim(site)[1]){
 	      if(site[i,5] == yrm){
 	        ma <- ma + site[i,7+siObs]
 	        c <- c +1
@@ -46,7 +57,7 @@ function (binary,site,siObs,obs,obsi){#binary con or pH
 	        }
 	      } else if(site[i,5] > yrm){
 	      	#monthly aggregate / recorded perciptation over the month
-	      	if(sum(site[(i-c):(i-1),6 + siObs]) == 0){sump = 1}
+	      	if(sum(site[(i-c):(i-1),6 + siObs]) == 0){sump = NA}
 	      	else{sump = sum(site[(i-c):(i-1),6 + siObs])}
 	        sitem[j,3] <- ma/sump
 	        c <- 1

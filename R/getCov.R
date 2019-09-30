@@ -59,8 +59,7 @@ preCSVf  <- preCSV[,-1]
 	  if(is.null(seas)){seas = 52}
 	}else if(!(floor(mondf(startdate,enddate))==(mondf(startdate,enddate)))){# won't happen because code wont produce decimals
 	  stop("Number of months is not integer")
-	}
-	else{
+	}else{
 	  totT <- (mondf(startdate,enddate))+1
 	  if(is.null(seas)){seas = 12}
 	  }
@@ -78,9 +77,9 @@ preCSVf  <- preCSV[,-1]
 
 	   #add back desired columns based on input in obs e.g add back SO4, pH, NO3 etc.
 	for (i in 1:length(obs)){
-	  obsiCSV <- match(obs[i],colnames(conCSV))
-	  cn <- colnames(conCSVf)
-	  conCSVf[,5+i] <- conCSV[,obsiCSV] #
+	  obsiCSV           <- match(obs[i],colnames(conCSV))
+	  cn                <- colnames(conCSVf)
+	  conCSVf[,5+i]     <- conCSV[,obsiCSV] #
 	  colnames(conCSVf) <- c(cn, obs[i])
 	}
 
@@ -160,10 +159,9 @@ for(s in 1:(length(cati)*length(obs))){
     site <- na.omit(site)
 
     #aggregate precipitation data monthly and get concentration values
-    if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi)
+    if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
       }else{     sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
     sitem <- sitem[sitem[,3]>= 0.0000001,]
-    sitem <- na.omit(sitem)
 
     #take out outliers
     if (length(outliersDates) != 0){
@@ -195,14 +193,17 @@ for(s in 1:(length(cati)*length(obs))){
 
     #deterministic trend for one site
     cn <- colnames(sitem)
+    sitem <- na.omit(sitem)
     sitem[,4] <- log(sitem[,3])
     colnames(sitem) <- c(cn, "log")
     y1 <- sitem[,4]
     t <- sitem$t
-    cyclicTrend <- I(cos(t*(2*pi/seas))^p)*kv[1]   + I(cos(t*(2*pi/seas)*2)^p)*kv[2] +
-                   I(cos(t*(2*pi/seas)*3)^p)*kv[3] + I(cos(t*(2*pi/seas)*4)^p)*kv[4] +
-                   I(cos(t*(2*pi/seas)*5)^p)*kv[5] + t*rv[1] + (t^2)*rv[2] +(t^3)*rv[3]+
-                    (t^4)*rv[4] + (t^5)*rv[5]
+    cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
+                   (I(cos(t*(2*pi/seas)*2)^p) + I(sin(t*(2*pi/seas)*2)^p) )*kv[2] +
+                   (I(cos(t*(2*pi/seas)*3)^p) + I(sin(t*(2*pi/seas)*3)^p))*kv[3] +
+                   (I(cos(t*(2*pi/seas)*4)^p) + I(sin(t*(2*pi/seas)*4)^p))*kv[4] +
+                   (I(cos(t*(2*pi/seas)*5)^p) + I(sin(t*(2*pi/seas)*5)^p))*kv[5] +
+                   t*rv[1] + (t^2)*rv[2] + (t^3)*rv[3] + (t^4)*rv[4] + (t^5)*rv[5]
     df  <- data.frame(cbind(y1,cyclicTrend))
     df  <- data.frame(cbind(df,t))
     mod <- lm(y1 ~ I(kv[1]*cos(t*(2*pi/seas))^p)   + I(kv[2]*cos(t*(2*pi/seas)*2)^p) +
@@ -331,6 +332,6 @@ options(warn=-1)
 	if(writeMat){
 	  write.mat(covxx,filename = "covSites.mat")
 	}
-  my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati, "mvn"=MVDw, "univariateTest"=univariateTest)
+  my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati, "mvn"=MVDw, "univariateTest"=univariateTest, "data" = dfRes[,-1])
   return(my_list)
 }

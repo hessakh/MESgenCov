@@ -95,7 +95,6 @@ preCSVf  <- preCSV[,-1]
   preCSVf <- preCSVf[preCSVf$starttime >=d1,]
   preCSVf <- preCSVf[preCSVf$endtime   <=d2,]
 
-
 	preCSVf$amount    <- as.numeric(preCSVf$amount) #change data type of column
 	preCSVf <- preCSVf[preCSVf$amount>-0.0001,]   #filter out -/ive values
 
@@ -103,6 +102,7 @@ preCSVf  <- preCSV[,-1]
 
 	rv    <- integer(5); if(r != 0){rv[1:r] <- rep(1L,r)}
 	kv    <- integer(5); if(k != 0){kv[1:k] <- rep(1L,k)}
+	kk <- k
 
 	tl   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
 	to   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
@@ -111,7 +111,8 @@ preCSVf  <- preCSV[,-1]
 	co   <- vector(mode="list", length=(length(cati)*length(obs))) #model coefficient
 	inter<- vector(mode="numeric", length=(length(cati)*length(obs))) #model intercept
 	e    <- vector(mode="list", length=(length(cati)*length(obs))) #error
-	mods <- vector(mode="list", length=(length(cati)*length(obs))) #error
+	mods <- vector(mode="list", length=(length(cati)*length(obs))) #model summaries
+	vpredl <- vector(mode="list", length=(length(cati)*length(obs))) #list of vector of predictions
 
 	si   <- 1
 	obsi <- 1
@@ -142,6 +143,7 @@ for(s in 1:(length(cati)*length(obs))){
     co[[s]] <- NA
     inter[s]<- NA
     mods[[s]] <- NA
+    vpredl[[s]] <- NA
     message(paste0("Missing data for ", cati[si]," ",obs[obsi],
             " check if site has data for inputted dates in data file weeklyCSV, preDailyCSV"))
   }else{
@@ -170,7 +172,7 @@ for(s in 1:(length(cati)*length(obs))){
         j     <- outliersDates[i]
         index <- match(j, sitem$t)
         if (!is.na(index)){
-          sitem <-  sitem[-index,]
+          sitem[index,] <-  NA
         }
       }#endfor
     }#endif
@@ -183,8 +185,9 @@ for(s in 1:(length(cati)*length(obs))){
             j     <- as.integer(outlierDatesbySite[i])
             index <- match(j, sitem$t)
             if (!is.na(index)){
-              sitem <- sitem[-index,]
+              sitem[index,] <- NA
             }
+
           }else{break}
         }
         oc = i #outlier site counter #skips t
@@ -193,9 +196,10 @@ for(s in 1:(length(cati)*length(obs))){
 
     #deterministic trend for one site
     cn <- colnames(sitem)
-    sitem <- na.omit(sitem)
     sitem[,4] <- log(sitem[,3])
+    y2[[s]] <- sitem[,4]
     colnames(sitem) <- c(cn, "log")
+    sitem <- na.omit(sitem)
     y1 <- sitem[,4]
     t <- sitem$t
     cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
@@ -206,10 +210,12 @@ for(s in 1:(length(cati)*length(obs))){
                    t*rv[1] + (t^2)*rv[2] + (t^3)*rv[3] + (t^4)*rv[4] + (t^5)*rv[5]
     df  <- data.frame(cbind(y1,cyclicTrend))
     df  <- data.frame(cbind(df,t))
-    mod <- lm(y1 ~ I(kv[1]*cos(t*(2*pi/seas))^p)   + I(kv[2]*cos(t*(2*pi/seas)*2)^p) +
-                   I(kv[3]*cos(t*(2*pi/seas)*3)^p) + I(kv[4]*cos(t*(2*pi/seas)*4)^p) +
-                   I(kv[5]*cos(t*(2*pi/seas)*5)^p) + I(rv[1]*t) + I((t^2)*rv[2]) +
-                   I((t^3)*rv[3]) + I((t^4)*rv[4]) + I((t^5)*rv[5]), data = df)
+    mod <- lm(y1 ~ I(kv[1]*cos(t*(2*pi/seas))^p)   + I(kv[1]*sin(t*(2*pi/seas))^p)   +
+                   I(kv[2]*cos(t*(2*pi/seas)*2)^p) + I(kv[2]*sin(t*(2*pi/seas)*2)^p)  +
+                   I(kv[3]*cos(t*(2*pi/seas)*3)^p) + I(kv[3]*sin(t*(2*pi/seas)*3)^p) +
+                   I(kv[4]*cos(t*(2*pi/seas)*4)^p) + I(kv[4]*sin(t*(2*pi/seas)*4)^p) +
+                   I(kv[5]*cos(t*(2*pi/seas)*5)^p) + I(kv[5]*sin(t*(2*pi/seas)*5)^p) +
+                   I(t*rv[1]) + I((t^2)*rv[2]) + I((t^3)*rv[3]) + I((t^4)*rv[4]) + I((t^5)*rv[5]), data = df)
     er  <- residuals(mod)
     summary(mod)
     to[[s]] <- t
@@ -229,24 +235,37 @@ for(s in 1:(length(cati)*length(obs))){
     kl    <- 1
 
     coef <- NULL
-    for(j in 2:11){
+    for(j in 1:16){
       if(is.na(unname(mod$coefficients[j]))){
         coef <- c(coef, 0)
       }else{coef <- c(coef, unname(mod$coefficients[j]))}
     }
 
+    #construect predicted value vector
+    vpred <- rep(0L,totT)
+    coefi <- 2    # coefficient index
+    for (z in 1:totT){
+      for (m in 1:kk){
+        vpred[z] <- vpred[z] + coef[coefi]*cos(z*(2*pi/seas)*m) + coef[coefi+1]*sin(z*(2*pi/seas)*m)
+        coefi <- coefi+2
+      }
+      for (n in 1:r){
+        vpred[z] <- vpred[z] + coef[coefi]*(z^n)
+        coefi <- coefi+1
+      }
+      vpred[z] <- vpred[z] + coef[1]
+      coefi <- 2 #restart index for new point
+    }
+
     for(i in 1:(totT+maxfi-1)){
       if(t[kl] != i-fi){ #if t is skipped
-        cy1 <- coef[1]*I(cos((i-fi)*(2*pi/seas))^p)*kv[1]   + coef[2]*I(cos((i-fi)*(2*pi/seas)*2)^p)*kv[2] +
-          coef[3]*I(cos((i-fi)*(2*pi/seas)*3)^p)*kv[3] + coef[4]*I(cos((i-fi)*(2*pi/seas)*4)^p)*kv[4] +
-          coef[5]*I(cos((i-fi)*(2*pi/seas)*5)^p)*kv[5] + coef[6]*(i-fi)*rv[1] + coef[7]*((i-fi)^2)*rv[2] +coef[8]*((i-fi)^3)*rv[3]+
-          coef[9]*((i-fi)^4)*rv[4] + coef[10]*((i-fi)^5)*rv[5] + inter1
+        cy1 <- vpred[i-fi]
           #cy2 + rnorm(1,0,se1) #for maintaining variance
         ry1 <- y1[kl:length(y1)]
         ry2i <- y2i[kl:length(y2i)]
         y1 <- c(y1[1:kl-1],cy1,ry1)
         y2i <- c(y2i[1:kl-1],NA,ry2i)
-        er <- c(er[1:kl-1],0,er[kl:length(er)]) # change to stochastic
+        er <- c(er[1:kl-1],rnorm(1,0,se1),er[kl:length(er)]) # change to stochastic #change to 0
         t  <- c(t[1:kl-1],i-fi,t[kl:length(t)])
         fi <- fi + 1
       }else{kl = kl + 1}
@@ -257,9 +276,11 @@ for(s in 1:(length(cati)*length(obs))){
     tl[[s]]    <- t
     e[[s]]     <- unname(er)
     y[[s]]     <- y1
-    y2[[s]]    <- y2i
+    #y2[[s]]    <- y2i
     co[[s]]    <- coef
     inter[s]   <- inter1
+    vpredl[[s]] <- vpred
+
     if(plotAll == T){
       if(s%%4 == 1 && s!=1){
         dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
@@ -268,10 +289,7 @@ for(s in 1:(length(cati)*length(obs))){
     tc <- 1:totT
       plot(tc,y2[[s]],ylim=c(-2, 3), ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
       par(new=TRUE)
-      plot(tc,  coef[1]*I(cos(tc*(2*pi/seas))^p)*kv[1]   + coef[2]*I(cos(tc*(2*pi/seas)*2)^p)*kv[2] +
-             coef[3]*I(cos(tc*(2*pi/seas)*3)^p)*kv[3] + coef[4]*I(cos(tc*(2*pi/seas)*4)^p)*kv[4] +
-             coef[5]*I(cos(tc*(2*pi/seas)*5)^p)*kv[5] + coef[6]*tc*rv[1] + coef[7]*(tc^2)*rv[2] +coef[8]*(tc^3)*rv[3]+
-             coef[9]*(tc^4)*rv[4] + coef[10]*(tc^5)*rv[5] + inter1, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
+      plot(tc, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
     }
   }
   si <- si + 1
@@ -314,24 +332,30 @@ options(warn=-1)
 
 	if(showOutliers == TRUE){
 	  #find outliers in each site
-	  i = match(siteOutliers, cati)
-	  rosnerTest(dfRes[,i+1])
+	  #Store Site outliers
+	  i <- match(siteOutliers,colnames(dfRes))
+	  if(is.na(i)){
+	    message("siteOutliers string doesn't match any colnames, these are the options:")
+	    print(colnames(dfRes))
+	    siteRosner = NULL}
+	  else{siteRosner = rosnerTest(dfRes[,i])}
+
 	}
 	if(plotB == T){
 		  dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
 		  par(mar=c(4,4,2,2))
 			i = match(sitePlot[1], cati)
+			tc <- 1:totT
 			plot(tc,y2[[i]],ylim=c(-2, 3), ylab="Log sulfate concentration", xlab = "t (months)", main = toString(sitePlot[1]))
 			par(new=TRUE)
-			plot(tc,co[[i]][1]*I(cos(tc*(2*pi/seas))^p)*kv[1]   + co[[i]][2]*I(cos(tc*(2*pi/seas)*2)^p)*kv[2] +
-       		co[[i]][3]*I(cos(tc*(2*pi/seas)*3)^p)*kv[3] + co[[i]][4]*I(cos(tc*(2*pi/seas)*4)^p)*kv[4] +
-       		co[[i]][5]*I(cos(tc*(2*pi/seas)*5)^p)*kv[5] + co[[i]][6]*tc*rv[1] + co[[i]][7]*(tc^2)*rv[2] +co[[i]]					[8]*(tc^3)*rv[3]+
-       		co[[i]][9]*(tc^4)*rv[4] + co[[i]][10]*(tc^5)*rv[5] + inter[i], type="l"
+			plot(tc, vpredl[[i]], type="l"
 			     ,col ="blue",ylim=c(-2, 3),ylab = "",xlab="")
 	}
 	if(writeMat){
 	  write.mat(covxx,filename = "covSites.mat")
 	}
-  my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati, "mvn"=MVDw, "univariateTest"=univariateTest, "data" = dfRes[,-1])
+  my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati,
+                  "mvn"= MVDw, "univariateTest"=univariateTest, "data" = dfRes[,-1],
+                  "rosnerTest" = siteRosner, "pred"=vpredl)
   return(my_list)
 }

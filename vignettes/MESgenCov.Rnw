@@ -217,30 +217,33 @@ Other options for region "W","S","N". **Include figure that divides the regions.
       \begin{align*}
         W(t) &:= \text{set of weeks in month $t$,}\\
         D(w) &:= \text{set of days in week $w$,} \\
-        q_w  &:= \text{recorded chemical quantity for week $w$ ($c(w)=*$ denotes an unrecorded value),} \\
-        p_d  &:= \text{recorded precipitation quantity for day $d$.}
+        c_w  &:= \text{recorded chemical concentration (mg/L) for week $w$}\\
+             &\phantom{:=} \text{ ($c_w=*$ denotes an unrecorded value),}\\
+        p_d  &:= \text{recorded precipitation quantity (L) for day $d$,}\\
+        p_w  &:= \text{precipitation quantity (L) for week $w$; $\textstyle p_w=\sum_{d\in D(w)}p_d$.}
     \end{align*}
-Then the chemical's concentration for month $t$ is
+Then the chemical's concentration (mg/L) for month $t$ is calculated as
 \[
-c(t):=\frac{\sum_{w\in W(t)} q_w}
-{\sum_{w\in W(t) : q_w \not=*} \sum_{d\in w} p_d}.
+y(t):=\frac{\sum_{w\in W(t) : c_w \not=*} p_w c_w}
+{\sum_{w\in W(t) : c_w \not=*} \sum_{d\in w} p_d}.
 \]
-Finally, a model is fit to $\log(c(t))$.
+It should be noted that when there is no weekly value available for the chemical quantity,
+    we do not use the preciptation values for any of the days in such a week
+    (so as to not artificially dilute the chemical concentration level for the month).
 
-    It should be noted that when there is no weekly value available for the chemical quantity,
-    we do not add the preciptation values for any of the days in such a week
-    (so as to not artificially dilute the chemical concentration level for the month).  In **citep** they use the following model to deseasonalize and detrend the data set of log transformed monthly sulfate concentration values.
+Finally, a model is fit to $\log(y(t))$.
+      In **citep** they use the following model to deseasonalize and detrend the data set of log transformed monthly sulfate concentration values.
 
 \begin{equation} \label{simplemodel}
-         \log(c(t))\approx \beta_{1} + \beta_{2}t + \beta_{3}\cos\bigg(\frac{2\pi t}{12}\bigg) + \beta_{4}\sin\bigg(\frac{2\pi t}{12}\bigg)~.
+         \log(y(t))\approx \beta_{1} + \beta_{2}t + \beta_{3}\cos\bigg(\frac{2\pi t}{12}\bigg) + \beta_{4}\sin\bigg(\frac{2\pi t}{12}\bigg)~.
 \end{equation}
-
-    Basically, this is just an affine model $ \beta_{1} + \beta_{2}t$ plus
+Basically, this is just an affine model $ \beta_{1} + \beta_{2}t$ plus
     a sinusoidal model with monthly periodicity and intercept $\beta_3$.
 
 
   We found that this model did well in normalizing (normalizing?)
-  certain cites but some sites like "MD13" and "NC03" did not do as well. Instead, we fit a more flexible model described in the next section.%also show figures for sites
+  certain cites but some sites like "MD13" and "NC03" did not do as well. Rather than
+  fix \eqref{simplemodel} as our model, we provide a more flexible model described in the next section.%also show figures for sites
 
   \subsection{The univariate model}
   %%Confirm that we should not write about what we tries, just what worked
@@ -259,10 +262,10 @@ Finally, a model is fit to $\log(c(t))$.
 % We also added the flexibility of deciding the periodicity of the function, the user can now alter the input $S$ to change the period of the model.
 The general model that we provide is
 \[
-\log(c(t))\approx \sum_{i=0}^r \beta_{i}t^i + \sum_{j=1}^{k} \bigg[a_j \cos \bigg(\frac{2\pi jt}{S}\bigg) +  b_j \sin \bigg(\frac{2\pi jt}{S}\bigg)\bigg].
+\log(y(t))\approx \sum_{i=0}^r \beta_{i}t^i + \sum_{j=1}^{k} \bigg[a_j \cos \bigg(\frac{2\pi jt}{S}\bigg) +  b_j \sin \bigg(\frac{2\pi jt}{S}\bigg)\bigg].
 \]
 The user can specify the degree $r$ for the polynomial part of the model, aimed at capturing aperiodic trends.
-Periodic trends can be captured via a truncated Fourier series, truncated at level $k$.
+Periodic trends are captured via a truncated Fourier series, truncated at level $k$.
 The simple model \eqref{simplemodel} is this one with $r=1$, $k=1$ and $S=12$.
 
 

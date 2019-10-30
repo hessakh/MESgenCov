@@ -45,7 +45,7 @@ library(MESgenCov2)
 \maketitle
 
 \begin{abstract}
-  We present an R package for temporally fitting multivariate precipitation chemistry data and extracting a covariance martrix
+  We present an R package for temporally fitting multivariate precipitation chemistry data and extracting a covariance matrix
 for use in MES (maximum-entropy) sampling.
  We provide multiple functionalities for modeling and model assessment. The package uses data from the NADP/NTN (National Atmospheric Deposition Program / National Trends Network) on their set of more than \color{red}370 \color{black} monitoring sites, 1978--present. The user specifies the sites, chemicals and time period desired, fits a user-controlled univariate model for each site and chemical selected, and produces a covariance matrix for use by MES algorithms.
 
@@ -91,7 +91,7 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
 
   \subsection{getCov}
 
-  \verb;getCov(); is by far the most complicated function, and it has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
+  \verb;getCov(); has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
 
   %%table
 

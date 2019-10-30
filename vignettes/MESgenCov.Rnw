@@ -46,9 +46,8 @@ library(MESgenCov2)
 
 \begin{abstract}
   We present an R package for temporally fitting multivariate precipitation chemistry data and extracting a covariance martrix
-for use in MES (maximum-entropy) sampling. In our approach, we do not fit spatial models. Rather,
-correlations between monitoring sites and between different chemicals are handled through an entropy model.
- We provide multiple functionalities for modeling and model assessment. The package uses data from the NADP/NTN (National Atmospheric Deposition Program / National Trends Network) on their set of more than 370 monitoring sites, 1978--present. The user specifies the sites, chemicals and time period desired, fits a user-controlled univariate model for each site and chemical selected, and produces a covariance matrix for use by MES algorithms.
+for use in MES (maximum-entropy) sampling.
+ We provide multiple functionalities for modeling and model assessment. The package uses data from the NADP/NTN (National Atmospheric Deposition Program / National Trends Network) on their set of more than \color{red}370 \color{black} monitoring sites, 1978--present. The user specifies the sites, chemicals and time period desired, fits a user-controlled univariate model for each site and chemical selected, and produces a covariance matrix for use by MES algorithms.
 
 \end{abstract}
 

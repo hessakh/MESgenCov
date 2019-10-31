@@ -163,7 +163,6 @@ for(s in 1:(length(cati)*length(obs))){
     #aggregate precipitation data monthly and get concentration values
     if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
       }else{     sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
-    sitem <- sitem[sitem[,3]>= 0.0000001,]
 
     #take out outliers
     if (length(outliersDates) != 0){
@@ -245,6 +244,7 @@ for(s in 1:(length(cati)*length(obs))){
     vpred <- rep(0L,totT)
     coefi <- 2    # coefficient index
     for (z in 1:totT){
+      vpred[z] <- 0
       for (m in 1:kk){
         vpred[z] <- vpred[z] + coef[coefi]*cos(z*(2*pi/seas)*m) + coef[coefi+1]*sin(z*(2*pi/seas)*m)
         coefi <- coefi+2

@@ -236,24 +236,23 @@ for(s in 1:(length(cati)*length(obs))){
     coef <- NULL
     for(j in 1:16){
       if(is.na(unname(mod$coefficients[j]))){
-        coef <- c(coef, 0)
+        coef <- c(coef, inter1)
       }else{coef <- c(coef, unname(mod$coefficients[j]))}
     }
 
     #construect predicted value vector
-    vpred <- rep(0L,totT)
+    vpred <- rep(inter1,totT)
     coefi <- 2    # coefficient index
     for (z in 1:totT){
-      vpred[z] <- 0
       for (m in 1:kk){
         vpred[z] <- vpred[z] + coef[coefi]*cos(z*(2*pi/seas)*m) + coef[coefi+1]*sin(z*(2*pi/seas)*m)
         coefi <- coefi+2
       }
+      coefi = coefi + (5-kk)*2 #jump to time var coef
       for (n in 1:r){
         vpred[z] <- vpred[z] + coef[coefi]*(z^n)
         coefi <- coefi+1
       }
-      vpred[z] <- vpred[z] + coef[1]
       coefi <- 2 #restart index for new point
     }
 
@@ -329,7 +328,7 @@ options(warn=-1)
 		MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
 		MVDw
 	}
-
+	siteRosner = NULL
 	if(showOutliers == TRUE){
 	  #find outliers in each site
 	  #Store Site outliers
@@ -356,6 +355,6 @@ options(warn=-1)
 	}
   my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati,
                   "mvn"= MVDw, "univariateTest"=univariateTest, "data" = dfRes[,-1],
-                  "rosnerTest" = siteRosner, "pred"=vpredl)
+                  "rosnerTest" = siteRosner, "pred"=vpredl, "dfRes" = dfRes)
   return(my_list)
 }

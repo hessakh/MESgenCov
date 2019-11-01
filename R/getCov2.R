@@ -171,7 +171,7 @@ getCov2 <- function(weeklyB,startdateStr,enddateStr,
       #aggregate precipitation data monthly and get concentration values
       if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
       }else{     sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
-      sitem <- sitem[sitem[,3]>= 0.0000001,]
+
       #take out outliers
       if (length(outliersDates) != 0){
         outliersDates <- sort(outliersDates, decreasing = F)
@@ -239,8 +239,8 @@ getCov2 <- function(weeklyB,startdateStr,enddateStr,
       betaCos1 <- unname(mod$coefficients[2]) #store parameters
       betaSin1 <- unname(mod$coefficients[3])
       betaT1   <- unname(mod$coefficients[4])
-      inter1 	<- unname(mod$coefficients[1])
-      se      <-sqrt(deviance(mod)/df.residual(mod))
+      inter1 	 <- unname(mod$coefficients[1])
+      se       <- sqrt(deviance(mod)/df.residual(mod))
       fi <- 0 #to loop back
       maxfi <- totT - length(t)
       fe <- 1:(maxfi) #fake end to keep loop going
@@ -248,18 +248,18 @@ getCov2 <- function(weeklyB,startdateStr,enddateStr,
       y1 <- c(y1,fe)
       er <- c(er,fe)
       mode <- c(mode,mod)
-      k <- 1
+      l <- 1
 
       for(i in 1:(totT+maxfi-1)){
-        if(t[k] != i-fi){ #if t is skipped
-          ry1 <- y1[k:length(y1)]
+        if(t[l] != i-fi){ #if t is skipped
+          ry1 <- y1[l:length(y1)]
           cy1 <- inter1 + betaCos1*cos((i-fi)*(pi/6)) + betaSin1*sin((i-fi)*(pi/6)) + (i-fi)*betaT1 + rnorm(1,0,se)
           cy2 <- inter1 + betaCos1*cos((i-fi)*(pi/6)) + betaSin1*sin((i-fi)*(pi/6)) + (i-fi)*betaT1
-          y1 <- c(y1[1:k-1],cy1,ry1)
-          er <- c(er[1:k-1],cy1-cy2,er[k:length(er)]) #change back to -> cy1-cy2
-          t  <- c(t[1:k-1],i-fi,t[k:length(t)])
+          y1 <- c(y1[1:l-1],cy1,ry1)
+          er <- c(er[1:l-1],cy1-cy2,er[l:length(er)]) #change back to -> cy1-cy2
+          t  <- c(t[1:l-1],i-fi,t[l:length(t)])
           fi <- fi + 1
-        }else{k = k + 1}
+        }else{l = l + 1}
       }
       if(length(t)>totT){t<-t[1:totT];y1 <- y1[1:totT];er<-er[1:totT]}
 
@@ -337,6 +337,6 @@ getCov2 <- function(weeklyB,startdateStr,enddateStr,
   if(writeMat){
     write.mat(covxx,filename = "covSites.mat")
   }
-  my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati, "mvn"=MVDw, "univariateTest"=univariateTest)
+  my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati, "mvn"=MVDw, "univariateTest"=univariateTest, "dfRes" = dfRes)
   return(my_list)
 }

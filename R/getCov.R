@@ -263,8 +263,8 @@ for(s in 1:(length(cati)*length(obs))){
         ry1 <- y1[kl:length(y1)]
         ry2i <- y2i[kl:length(y2i)]
         y1 <- c(y1[1:kl-1],cy1,ry1)
-        y2i <- c(y2i[1:kl-1],NA,ry2i)
-        er <- c(er[1:kl-1],rnorm(1,0,se1),er[kl:length(er)]) # change to stochastic #change to 0
+        y2i <- c(y2i[1:kl-1],NA,ry2i) #missing = 0 rn, rnorm(1,0,se1)
+        er <- c(er[1:kl-1],0,er[kl:length(er)]) # change to stochastic #change to 0
         t  <- c(t[1:kl-1],i-fi,t[kl:length(t)])
         fi <- fi + 1
       }else{kl = kl + 1}

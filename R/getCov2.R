@@ -253,7 +253,7 @@ getCov2 <- function(weeklyB,startdateStr,enddateStr,
       for(i in 1:(totT+maxfi-1)){
         if(t[l] != i-fi){ #if t is skipped
           ry1 <- y1[l:length(y1)]
-          cy1 <- inter1 + betaCos1*cos((i-fi)*(pi/6)) + betaSin1*sin((i-fi)*(pi/6)) + (i-fi)*betaT1 + rnorm(1,0,se)
+          cy1 <- inter1 + betaCos1*cos((i-fi)*(pi/6)) + betaSin1*sin((i-fi)*(pi/6)) + (i-fi)*betaT1 #+ rnorm(1,0,se)
           cy2 <- inter1 + betaCos1*cos((i-fi)*(pi/6)) + betaSin1*sin((i-fi)*(pi/6)) + (i-fi)*betaT1
           y1 <- c(y1[1:l-1],cy1,ry1)
           er <- c(er[1:l-1],cy1-cy2,er[l:length(er)]) #change back to -> cy1-cy2

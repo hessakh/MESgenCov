@@ -96,7 +96,7 @@ preCSVf  <- preCSV[,-1]
   preCSVf <- preCSVf[preCSVf$endtime   <=d2,]
 
 	preCSVf$amount    <- as.numeric(preCSVf$amount) #change data type of column
-	preCSVf <- preCSVf[preCSVf$amount>-0.0001,]   #filter out -/ive values
+	preCSVf <- preCSVf[preCSVf$amount>-0.0001,]     #filter out -/ive values
 
 	#initialize
 

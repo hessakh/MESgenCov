@@ -82,7 +82,7 @@ U.S.A. Our R package makes use of the weekly data measuring  mg/L of chemicals, 
 Below is a snapshot of the weekly data; a full description of the data can be obtained at \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-weekly-Meta.pdf}{NADP NTN weekly meta}. For a full description of the daily precipitation data, see \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-daily-Meta.pdf}{NADP NTN daily meta}. The datasets can also be viewed using
 
 <<chunk2,include=TRUE>>=
-  weeklyCSV[1:6,1:6]
+  cbind(weeklyCSV[1:18,1:4],weeklyCSV[1:18,17:18])
 @
 
 \section{MESgenCov implementation}
@@ -91,14 +91,14 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
 
   \subsection{getCov}
 
-  \verb;getCov(); has 19 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
+  \verb;getCov(); has 18 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
 
   %%table
 
   <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
   text_tbl <- data.frame(
-  Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd", "outliersDate", "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k","p"),
-  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods (e.g. month 1, month 2) to exclude from analysis", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model" ,"Integer, see univariate model"
+  Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd",  "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k"),
+  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model"
   )
   )
 @
@@ -115,74 +115,85 @@ library(kableExtra)
 
 First check multivariate and univariate normality
 <<chunckCovMult,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,NULL,NULL,
-         FALSE,NULL,"SO4",TRUE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+    g2 <-getCov(FALSE,"01/01/83 00:00", "12/31/88 00:00",TRUE,NULL,NULL,
+         NULL,TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3)
 @
+
+\begin{center}
+\includegraphics[width = 75mm]{pic1GetCov}
+\end{center}
+
+% Remove suggested outliers
+% <<chunckCovMultOut,include=TRUE,eval=FALSE>>=
+%   getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,c(1,2,3),NULL,
+%          FALSE,NULL,"SO4",TRUE,TRUE,"OH49",FALSE,FALSE,12,1,3)
+% @
 %%add figure of code ^^
 
-Remove suggested outliers
-<<chunckCovMultOut,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,c(1,2,3),NULL,
-         FALSE,NULL,"SO4",TRUE,TRUE,"OH49",FALSE,FALSE,12,1,3,1)
-@
-%%add figure of code ^^
-Look at a specific site
-<<chunckCovSite,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
-         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3,1)
+Check Univariate test
+<<chunckCuni,include=TRUE,eval=FALSE>>=
+    g2$univariateTest
 @
 %%
+
+\begin{center}
+\includegraphics[width = 75mm]{g2univ}
+\end{center}
+
+
+Look at a specific site
+<<chunckCovSite,include=TRUE,eval=FALSE>>=
+g2<-getCov(FALSE,"01/01/83 00:00", "12/31/88 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
++          TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3)
+g2$rosnerTest
+@
+%%
+\begin{center}
+\includegraphics[width = 70mm]{rosnerTest}
+\end{center}
+
+
+
+Remove outlier for site IN41
+%bottom code should be based on actual outliers, make sure to change accordingly!
+<<chunckCovSiteOutremoved,include=TRUE,eval=FALSE>>=
+  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
+         c(\"IN41",25),TRUE,"IN41SO4","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+@
+
 
 Change the univariate modeling parameters to get a better model for OH71
 %%make a better model for OH71
 <<chunckCovSiteModel,include=TRUE,eval=FALSE>>=
   getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
-         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3,1)
+         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3)
 @
 %%
-
-
-Look up outliers for site OH71
-<<chunckCovSiteOut,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
-         TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
-@
-
-Remove outlier for site OH71
-%bottom code should be based on actual outliers, make sure to change accordingly!
-<<chunckCovSiteOutremoved,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
-         c(8,"OH71"),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
-@
-
 
 Plot all sites
 <<chunckCovPlotALL,include=TRUE,eval=FALSE>>=
   getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
-         c("OH71",1),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+         c("OH71",1),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
 @
+
+\begin{center}
+  \includegraphics[width=75mm]{plotAll}
+\end{center}
 
 %%%%Parsing results
 <<chunkCovResult,include=TRUE,eval=FALSE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
-                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
   round(result$cov,digits = 4)
 @
 
-%%%%Parsing results
-<<chunkCovResultuni,include=TRUE,eval=FALSE>>=
-  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
-                   c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
-                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
-  result$univariateTest
-@
 
 %%%%Parsing results
-<<chunkListModResult,include=TRUE,eval=FALSE>>=
+<<chunkListModResult,include=TRUE,eval=TRUE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),
-                   NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+                   NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
   sites <- result$sites
   il = match(c("OH71","NH02"),sites)
   result$listMod[il]
@@ -192,14 +203,15 @@ Other options: write mat file and output all MVN analysis done by the MVN packag
 
   \subsection{Functions for getting a vector of sites}
 
-<<getSites1,include=TRUE,eval=FALSE>>=
+<<getSites1,include=TRUE,eval=TRUE>>=
   result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","")
   result$finalList
 @
 
-<<getSites1region,include=TRUE,eval=FALSE>>=
-  result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","NE")
-  result$finalList
+
+<<getSites1region,include=TRUE,eval=TRUE>>=
+  NESites <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","NE")
+  NESites$finalList
 @
 Other options for region "W","S","N". **Include figure that divides the regions.**
 <<maxDistSites1,include=TRUE,eval=FALSE>>=

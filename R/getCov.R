@@ -42,6 +42,10 @@ getCov <- function(weeklyB,startdateStr,enddateStr,
    message("Missing files, running code that downloads necessary files from the NADP site")
    getDataOffSite()
  }
+  #check for multiple pollutants
+  if(length(comp) > 1){
+    message("Package can only model data from one pollutant/observed variable")
+  }
 
 conCSV <- weeklyCSV
 preCSV <- na.omit(preDailyCSV)

@@ -100,26 +100,24 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
   siteDataCount <- merge(siteDataCount, geoCSV, by="siteID")
   siteDataCount <- siteDataCount[order(siteDataCount$count,decreasing = TRUE),]
   if(optR == "W"){
-    siteDataCount <- siteDataCount[siteDataCount$long<=-110,]
+    siteDataCount <- siteDataCount[siteDataCount$long<=-104,]
   }else if(optR == "S"){
-    siteDataCount <- siteDataCount[siteDataCount$long>=-110,]
+    siteDataCount <- siteDataCount[siteDataCount$long>=-104,]
     siteDataCount <- siteDataCount[siteDataCount$lat<=37.5,]
-  }else if(optR == "NE"){
-    siteDataCount <- siteDataCount[siteDataCount$long>=-90,]
-    siteDataCount <- siteDataCount[siteDataCount$lat>=37.5,]
   }else if(optR == "N"){
-    siteDataCount <- siteDataCount[siteDataCount$long>=-110,]
-    siteDataCount <- siteDataCount[siteDataCount$long<=-90,]
+    siteDataCount <- siteDataCount[siteDataCount$long>=-104,]
     siteDataCount <- siteDataCount[siteDataCount$lat>=37.5,]
   }
 #toc()
   #final list of sites
-  if((dim(siteDataCount)[1]) <= maxn && (dim(siteDataCount)[1])>0){
+  if((dim(siteDataCount)[1]) < maxn && (dim(siteDataCount)[1])>0){
+    finalSites <- siteDataCount$siteID
+    my_list <- list("finalList" = finalSites, "data" = siteDataCount)
     message(paste0("Number of sites with data for inputted dates is less than specified max, number of sites found ",dim(siteDataCount)[1]))
+    return(my_list)
     return(siteDataCount$siteID[1:(dim(siteDataCount)[1])])
-  }else if ((dim(siteDataCount)[1]) <= maxn) {
+  }else if ((dim(siteDataCount)[1]) < maxn) {
     message(paste0("Number of sites with data for inputted dates is less than specified max, number of sites found ",dim(siteDataCount)[1]))
-    return(siteDataCount$siteID[1])
     }else{
       finalSites <- siteDataCount$siteID[1:maxn]
       my_list <- list("finalList" = finalSites, "data" = siteDataCount)

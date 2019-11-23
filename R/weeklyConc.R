@@ -18,13 +18,14 @@ weeklyConc <-
 
 	    sd <- site[1,3]
 	    sitew[1,1] <- sd
+	    class(sitew[1,1]) <- c('POSIXt','POSIXct')
 	    currt <- round(as.numeric(difftime(as.POSIXct(sd,origin = origin), startdate, units = "weeks"))) + 1#current t,starts at 1
 	    sitew[1,2] <- currt  #t # need to make sure this coincides with 1st week
-	    sitew[1,3] <- 0   #SO4 vol
+	    sitew[1,3] <- 0          #comp vol
 	    lsd <- round(as.numeric(difftime(as.POSIXct(site[dim(site)[1],3],origin = origin), startdate, units = "weeks"))) + 1#last week start date
 	    j  <- 1 #tracks rows in sitew
 	    c  <- 1 #counter of weeks in month
-	    wa <- site[1,7 + siObs] #monthly aggregate of compund
+	    wa <- site[1,7 + siObs] # aggregate of compund
 
     	if (binary == 1){
 			for (i in 2:dim(site)[1]){
@@ -65,7 +66,7 @@ weeklyConc <-
 	        wa <- site[i,7+siObs]
 	        currt <- nextt
 	        j = j+1
-	        sitew[j,1] <- site[i,3]
+	        sitew[j,1] <- as.POSIXct(site[i,3],origin = origin)
 	        #store t
 	        sitew[j,2] <- currt
 	      }

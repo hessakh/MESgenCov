@@ -20,18 +20,18 @@
 #'@param seas           Integer, period for model
 #'@param r              Integer, degree of polynomial to fit
 #'@param k              Integer, stopping term for fourier series
-#'@param p              Integer, power on trignometric terms
+
 #'@return               List of model summaries at each site, covariance matrix and plots if inputted as T
 #'@export
 #'@examples
 #'   getCov(FALSE,"01/01/83 00:00","12/31/86 00:00",TRUE,
 #'   c("AK01","PA02"),c(5,10),c("IL19",9, "VT01",1,33),TRUE,
-#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
 
 
 getCov <- function(weeklyB,startdateStr,enddateStr,
                    use36,siteAdd,outliersDates,outlierDatesbySite,showOutliers,
-                   siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k,p){
+                   siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k){
 
 	#get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -192,7 +192,7 @@ for(s in 1:(length(cati)*length(obs))){
         oc = i #outlier site counter #skips t
       }
     }
-
+    p <- 1
     #deterministic trend for one site
     cn <- colnames(sitem)
     sitem[,4] <- log(sitem[,3])

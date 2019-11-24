@@ -1,4 +1,4 @@
-Package: MESgenCov2
+Package: MESgenCov
 Type: Package
 Title: Generates input for the MES problem
 Version: 0.1.0

@@ -44,8 +44,6 @@ getCov(weeklyB, startdateStr, enddateStr, use36, siteAdd, outliersDates,
 \item{r}{Integer, degree of polynomial to fit}
 
 \item{k}{Integer, stopping term for fourier series}
-
-\item{p}{Integer, power on trignometric terms}
 }
 \value{
 List of model summaries at each site, covariance matrix and plots if inputted as T

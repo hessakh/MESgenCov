@@ -20,18 +20,19 @@
 #'@param seas           Integer, period for model
 #'@param r              Integer, degree of polynomial to fit
 #'@param k              Integer, stopping term for fourier series
+#'@param p
 
 #'@return               List of model summaries at each site, covariance matrix and plots if inputted as T
 #'@export
 #'@examples
 #'   getCov(FALSE,"01/01/83 00:00","12/31/86 00:00",TRUE,
 #'   c("AK01","PA02"),c(5,10),c("IL19",9, "VT01",1,33),TRUE,
-#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
 
 
 getCov <- function(weeklyB,startdateStr,enddateStr,
                    use36,siteAdd,outliersDates,outlierDatesbySite,showOutliers,
-                   siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k){
+                   siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k,p){
 
 	#get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -39,9 +40,13 @@ getCov <- function(weeklyB,startdateStr,enddateStr,
   }
   #check, still doesn't exist?
  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-   message("Missing files, running code that downloads necessary files from the NADP site")
-   getDataOffSite()
+   stop("Missing files, running code that downloads necessary files from the NADP site")
+   #getDataOffSite()
  }
+  #check for multiple pollutants
+  if(length(comp) > 1){
+    stop("Package can only model data from one pollutant/observed variable")
+  }
 
 conCSV <- weeklyCSV
 preCSV <- na.omit(preDailyCSV)
@@ -175,7 +180,6 @@ for(s in 1:(length(cati)*length(obs))){
         }
       }#endfor
     }#endif
-    #still need to debug this part
     if (length(outlierDatesbySite) != 0){
       if(outlierDatesbySite[oc] == cati[si]){
         for(i in (oc+1):length(outlierDatesbySite)){

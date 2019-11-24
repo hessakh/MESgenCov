@@ -91,14 +91,14 @@ Below is a snapshot of the weekly data; a full description of the data can be ob
 
   \subsection{getCov}
 
-  \verb;getCov(); has 18 inputs that allow the user specify the subset of data to analyze and give the user options in displying different parts of the analysis. A table of the input is given here:
+  \verb;getCov(); has 18 inputs that allow the user specify the subset of data to analyze and gives the user options in displying different parts of the analysis. A table of the input is given here:
 
   %%table
 
   <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
   text_tbl <- data.frame(
-  Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd",  "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k"),
-  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model"
+  Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd",  "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k","p"),
+  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model","Integer <= 5, see univariate model"
   )
   )
 @
@@ -113,10 +113,13 @@ library(kableExtra)
         kable_styling(latex_options = "striped")
 @
 
-First check multivariate and univariate normality
+The function \texttt{getCov} produces the following outputs:
+\begin{enumerate}
+
+\item Multivariate and univariate normality
 <<chunckCovMult,include=TRUE,eval=FALSE>>=
     g2 <-getCov(FALSE,"01/01/83 00:00", "12/31/88 00:00",TRUE,NULL,NULL,
-         NULL,TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3)
+         NULL,TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3,1)
 @
 
 \begin{center}
@@ -126,11 +129,10 @@ First check multivariate and univariate normality
 % Remove suggested outliers
 % <<chunckCovMultOut,include=TRUE,eval=FALSE>>=
 %   getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,c(1,2,3),NULL,
-%          FALSE,NULL,"SO4",TRUE,TRUE,"OH49",FALSE,FALSE,12,1,3)
+%          FALSE,NULL,"SO4",TRUE,TRUE,"OH49",FALSE,FALSE,12,1,3,1)
 % @
 %%add figure of code ^^
 
-Check Univariate test
 <<chunckCuni,include=TRUE,eval=FALSE>>=
     g2$univariateTest
 @
@@ -141,10 +143,10 @@ Check Univariate test
 \end{center}
 
 
-Look at a specific site
+\item Outlier test for specific tests
 <<chunckCovSite,include=TRUE,eval=FALSE>>=
 g2<-getCov(FALSE,"01/01/83 00:00", "12/31/88 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
-+          TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3)
++          TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3,1)
 g2$rosnerTest
 @
 %%
@@ -154,66 +156,66 @@ g2$rosnerTest
 
 
 
-Remove outlier for site IN41
+By changing the input we can remove the outliers detected by the rosner test
 %bottom code should be based on actual outliers, make sure to change accordingly!
 <<chunckCovSiteOutremoved,include=TRUE,eval=FALSE>>=
   getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
-         c(\"IN41",25),TRUE,"IN41SO4","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+         c("IN41",25),TRUE,"IN41SO4","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
 @
+\begin{center}
+\includegraphics[width = 75mm]{IN41trans}
+\end{center}
 
 
-Change the univariate modeling parameters to get a better model for OH71
-%%make a better model for OH71
-<<chunckCovSiteModel,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,NULL,
-         FALSE,NULL,"SO4",FALSE,TRUE,"OH71",FALSE,FALSE,12,1,3)
-@
-%%
-
-Plot all sites
+\item Plot all sites
 <<chunckCovPlotALL,include=TRUE,eval=FALSE>>=
   getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),NULL,
-         c("OH71",1),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+         c("OH71",1),TRUE,"OH71","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
 @
 
 \begin{center}
   \includegraphics[width=75mm]{plotAll}
 \end{center}
 
+\item Covariance matrix
 %%%%Parsing results
-<<chunkCovResult,include=TRUE,eval=FALSE>>=
+<<chunkCovResult,include=TRUE,eval=TRUE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),NULL,
-                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
   round(result$cov,digits = 4)
 @
 
-
+\item Univariate model summaries
 %%%%Parsing results
 <<chunkListModResult,include=TRUE,eval=TRUE>>=
   result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
                    c("OH71", "NY08", "WV18", "MI53", "NH02"),c(1,2,3,4),
-                   NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+                   NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
   sites <- result$sites
-  il = match(c("OH71","NH02"),sites)
+  il = match(c("OH71"),sites)
   result$listMod[il]
 @
-
+\end{enumerate}
 Other options: write mat file and output all MVN analysis done by the MVN package.
 
   \subsection{Functions for getting a vector of sites}
+ \texttt{getCov()} takes site lists as input, the function \texttt{getSites()} produces a list of sites with available data for a specified time frame. The code below produces a list of 36 sites with the most weekly data between the years 1983-1986. 
 
 <<getSites1,include=TRUE,eval=TRUE>>=
   result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","")
   result$finalList
 @
 
+The 4th input specifies the minimum sample of weekly data required to be included in the produced list and the last input tells the function to only look at sites in the North Eastern region of the US. Other options for region "W","S","N". **Include figure that divides the regions.**
 
 <<getSites1region,include=TRUE,eval=TRUE>>=
   NESites <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","NE")
   NESites$finalList
 @
-Other options for region "W","S","N". **Include figure that divides the regions.**
+
+The function \texttt{maxDistSites()} prioritizes sites that are farther away from each other.
+
 <<maxDistSites1,include=TRUE,eval=FALSE>>=
   maxDistSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4",1)
 @

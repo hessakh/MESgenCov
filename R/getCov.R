@@ -45,7 +45,11 @@ getCov <- function(weeklyB,startdateStr,enddateStr,
  }
   #check for multiple pollutants
   if(length(comp) > 1){
+<<<<<<< HEAD
     stop("Package can only model data from one pollutant/observed variable")
+=======
+    message("Package can only model data from one pollutant/observed variable")
+>>>>>>> 8630fc5fdbe885e4e610ab01d9b8bb8c91cd44f6
   }
 
 conCSV <- weeklyCSV

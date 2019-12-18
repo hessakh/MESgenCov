@@ -26,7 +26,7 @@
 #'@examples
 #'   getCov(FALSE,"01/01/83 00:00","12/31/86 00:00",TRUE,
 #'   c("AK01","PA02"),c(5,10),c("IL19",9, "VT01",1,33),TRUE,
-#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
 
 
 getCov <- function(weeklyB,startdateStr,enddateStr,
@@ -113,7 +113,7 @@ preCSVf  <- preCSV[,-1]
 	y    <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line 	omitted NA values
 	y2   <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line w/ NA values
 	co   <- vector(mode="list", length=(length(cati)*length(obs))) #model coefficient
-	inter<- vector(mode="numeric", length=(length(cati)*length(obs))) #model intercept
+	inter<- vector(mode="numeric",length=(length(cati)*length(obs))) #model intercept
 	e    <- vector(mode="list", length=(length(cati)*length(obs))) #error
 	mods <- vector(mode="list", length=(length(cati)*length(obs))) #model summaries
 	vpredl <- vector(mode="list", length=(length(cati)*length(obs))) #list of vector of predictions
@@ -361,3 +361,4 @@ options(warn=-1)
                   "rosnerTest" = siteRosner, "pred"=vpredl, "dfRes" = dfRes)
   return(my_list)
 }
+

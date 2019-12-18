@@ -20,7 +20,6 @@
 #'@param seas           Integer, period for model
 #'@param r              Integer, degree of polynomial to fit
 #'@param k              Integer, stopping term for fourier series
-#'@param p
 
 #'@return               List of model summaries at each site, covariance matrix and plots if inputted as T
 #'@export
@@ -32,8 +31,8 @@
 
 getCov <- function(weeklyB,startdateStr,enddateStr,
                    use36,siteAdd,outliersDates,outlierDatesbySite,showOutliers,
-                   siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k,p){
-
+                   siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k){
+  p=1 #for added functionality in the future
 	#get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
     try({data("weeklyCSV"); data("preDailyCSV")})

@@ -100,13 +100,13 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
   siteDataCount <- merge(siteDataCount, geoCSV, by="siteID")
   siteDataCount <- siteDataCount[order(siteDataCount$count,decreasing = TRUE),]
   if(optR == "W"){
-    siteDataCount <- siteDataCount[siteDataCount$long<=-104,]
+    siteDataCount <- siteDataCount[siteDataCount$long<=-100,]
   }else if(optR == "S"){
-    siteDataCount <- siteDataCount[siteDataCount$long>=-104,]
-    siteDataCount <- siteDataCount[siteDataCount$lat<=37.5,]
+    siteDataCount <- siteDataCount[siteDataCount$long>=-100,]
+    siteDataCount <- siteDataCount[siteDataCount$lat<=39.5,]
   }else if(optR == "N"){
-    siteDataCount <- siteDataCount[siteDataCount$long>=-104,]
-    siteDataCount <- siteDataCount[siteDataCount$lat>=37.5,]
+    siteDataCount <- siteDataCount[siteDataCount$long>=-100,]
+    siteDataCount <- siteDataCount[siteDataCount$lat>=39.5,]
   }
 #toc()
   #final list of sites

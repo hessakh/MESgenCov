@@ -4,9 +4,9 @@
 \alias{getCov}
 \title{creates covariance matrix from normalized NADP monitor data}
 \usage{
-getCov(weeklyB, startdateStr, enddateStr, use36, siteAdd, outliersDates,
+getCov(weeklyB, startdateStr, enddateStr, use36, siteAdd,
   outlierDatesbySite, showOutliers, siteOutliers, comp, plotMulti, plotB,
-  sitePlot, plotAll, writeMat, seas, r, k, p)
+  sitePlot, plotAll, writeMat, seas, r, k)
 }
 \arguments{
 \item{weeklyB}{Binary, analyze weekly data, if F monthly data is analyzed}
@@ -18,8 +18,6 @@ getCov(weeklyB, startdateStr, enddateStr, use36, siteAdd, outliersDates,
 \item{use36}{Binary, use 36 default sites}
 
 \item{siteAdd}{Vector, sites to add}
-
-\item{outliersDates}{Integer, list of months/weeks (integers, 1 => 1st month/week) to omit}
 
 \item{outlierDatesbySite}{Vector of String, Integer, list of sites and months to omit}
 
@@ -44,6 +42,8 @@ getCov(weeklyB, startdateStr, enddateStr, use36, siteAdd, outliersDates,
 \item{r}{Integer, degree of polynomial to fit}
 
 \item{k}{Integer, stopping term for fourier series}
+
+\item{outliersDates}{Integer, list of months/weeks (integers, 1 => 1st month/week) to omit}
 }
 \value{
 List of model summaries at each site, covariance matrix and plots if inputted as T
@@ -53,6 +53,6 @@ creates covariance matrix from normalized NADP monitor data
 }
 \examples{
   getCov(FALSE,"01/01/83 00:00","12/31/86 00:00",TRUE,
-  c("AK01","PA02"),c(5,10),c("IL19",9, "VT01",1,33),TRUE,
-  "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3,1)
+  c("AK01","PA02"),c("IL19",9, "VT01",1,33),TRUE,
+  "VT01SO4",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
 }

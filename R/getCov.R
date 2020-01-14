@@ -25,12 +25,12 @@
 #'@export
 #'@examples
 #'   getCov(FALSE,"01/01/83 00:00","12/31/86 00:00",TRUE,
-#'   c("AK01","PA02"),c(5,10),c("IL19",9, "VT01",1,33),TRUE,
-#'   "VT01",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+#'   c("AK01","PA02"),c("IL19",9, "VT01",1,33),TRUE,
+#'   "VT01SO4",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
 
 
 getCov <- function(weeklyB,startdateStr,enddateStr,
-                   use36,siteAdd,outliersDates,outlierDatesbySite,showOutliers,
+                   use36,siteAdd,outlierDatesbySite,showOutliers,
                    siteOutliers,comp,plotMulti,plotB,sitePlot,plotAll,writeMat,seas,r,k){
   p=1 #for added functionality in the future
 	#get data if it's not in the working directory
@@ -168,17 +168,17 @@ for(s in 1:(length(cati)*length(obs))){
     if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
       }else{     sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
 
-    #take out outliers
-    if (length(outliersDates) != 0){
-      outliersDates <- sort(outliersDates, decreasing = F)
-      for(i in 1:length(outliersDates)){
-        j     <- outliersDates[i]
-        index <- match(j, sitem$t)
-        if (!is.na(index)){
-          sitem[index,] <-  NA
-        }
-      }#endfor
-    }#endif
+    # #take out outliers
+    # if (length(outliersDates) != 0){
+    #   outliersDates <- sort(outliersDates, decreasing = F)
+    #   for(i in 1:length(outliersDates)){
+    #     j     <- outliersDates[i]
+    #     index <- match(j, sitem$t)
+    #     if (!is.na(index)){
+    #       sitem[index,] <-  NA
+    #     }
+    #   }#endfor
+    # }#endif
     if (length(outlierDatesbySite) != 0){
       if(outlierDatesbySite[oc] == cati[si]){
         for(i in (oc+1):length(outlierDatesbySite)){
@@ -220,6 +220,7 @@ for(s in 1:(length(cati)*length(obs))){
                    I(t*rv[1]) + I((t^2)*rv[2]) + I((t^3)*rv[3]) + I((t^4)*rv[4]) + I((t^5)*rv[5]), data = df)
     er  <- residuals(mod)
     summary(mod)
+    mods[[s]] <- summary(mod)
     to[[s]] <- t
 
     #fill in missing t
@@ -233,7 +234,7 @@ for(s in 1:(length(cati)*length(obs))){
     y1   <- c(y1,fe)
     y2i  <- c(y1,fe)
     er   <- c(er,fe)
-    mods[[s]] <- summary(mod)
+    
     kl    <- 1
 
     coef <- NULL

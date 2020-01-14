@@ -4,7 +4,7 @@
 #' @import lubridate
 #' @param startdateStr String, when to start analyzing data, format = "m/d/y H:M"
 #' @param enddateStr   String, when to stop analyzing data, format = "m/d/y H:M"
-#' @param maxn         Maximum number of sites required
+#' @param maxn         Number of sites required
 #' @param mins         Minimum number of data required for each site
 #' @param comp         Vector of strings, strings of compounds
 #' @param startingSite Integer, largest sample index of initial site to include
@@ -106,6 +106,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   finalList <- siteDataCount[startingSite,]
   remainSDC <- siteDataCount[-startingSite,]
   trueMax <- min(dim(siteDataCount)[1],maxn)
+  print(dim(siteDataCount)[1])
   if(trueMax < maxn){#toc()
     stop(paste("Number of sites with data for inputted dates is less than specified max, number of sites found",
                   dim(siteDataCount)[1]))}
@@ -121,13 +122,14 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
         partialDist    <- remainSDC[j,6]
       }
       remainSDC[j,6] <- min(tempVec)
+      print(remainSDC[1:5,])
     }
     colnames(remainSDC) <- c("siteID", "count", "city", "lat", "long", "dist")
     remainSDC <- remainSDC[order(remainSDC$dist,decreasing = TRUE),]
     finalList <- rbind(finalList,remainSDC[1,1:5])
     remainSDC <- remainSDC[-1,]
   }
-
+  finalList <- finalList[1:maxn,]
   return(finalList$siteID)
 }
 #long    	 = geoCSV$Long[geoCSV$siteID == cat[k]]

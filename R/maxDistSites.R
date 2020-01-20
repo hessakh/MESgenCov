@@ -106,7 +106,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   finalList <- siteDataCount[startingSite,]
   remainSDC <- siteDataCount[-startingSite,]
   trueMax <- min(dim(siteDataCount)[1],maxn)
-  print(dim(siteDataCount)[1])
+  #print(dim(siteDataCount)[1])
   if(trueMax < maxn){#toc()
     stop(paste("Number of sites with data for inputted dates is less than specified max, number of sites found",
                   dim(siteDataCount)[1]))}
@@ -122,7 +122,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
         partialDist    <- remainSDC[j,6]
       }
       remainSDC[j,6] <- min(tempVec)
-      print(remainSDC[1:5,])
+      #print(remainSDC[1:5,])
     }
     colnames(remainSDC) <- c("siteID", "count", "city", "lat", "long", "dist")
     remainSDC <- remainSDC[order(remainSDC$dist,decreasing = TRUE),]
@@ -130,7 +130,9 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
     remainSDC <- remainSDC[-1,]
   }
   finalList <- finalList[1:maxn,]
-  return(finalList$siteID)
+  reList <- list("finalList" = finalList$siteID, "data" = siteDataCount, "startDate" = startdateStr,
+                 "endDate" = enddateStr, "comp" = comp)
+  return(reList)
 }
 #long    	 = geoCSV$Long[geoCSV$siteID == cat[k]]
 #lat       = geoCSV$Lat[geoCSV$siteID == cat[k]]

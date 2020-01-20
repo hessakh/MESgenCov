@@ -5,7 +5,7 @@
 #' @param maxn         Maximum number of sites required
 #' @param mins         Minimum number of data required for each site
 #' @param comp         Vector of strings, strings of compounds
-#' @param optR         String, option of region "N","NE","S","W",""
+#' @param optR         String, option of region "N","S","W",""
 #' @return             Returns list of sites that have the largest amount of data for the given dates and compounds
 #' @export
 #' @examples getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","N")
@@ -120,7 +120,8 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
     message(paste0("Number of sites with data for inputted dates is less than specified max, number of sites found ",dim(siteDataCount)[1]))
     }else{
       finalSites <- siteDataCount$siteID[1:maxn]
-      my_list <- list("finalList" = finalSites, "data" = siteDataCount)
+      my_list <- list("finalList" = finalSites, "data" = siteDataCount, "startDate" = startdateStr,
+                      "endDate" = enddateStr, "comp" = comp)
       return(my_list)
   }
 

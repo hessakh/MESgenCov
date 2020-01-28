@@ -8,7 +8,7 @@
 #' @param mins         Minimum number of data required for each site
 #' @param comp         Vector of strings, strings of compounds
 #' @param startingSite Integer, largest sample index of initial site to include
-#' @return             Returns list of sites that have the largest amount of data for the given dates and compounds
+#' @return             Returns list of sites that have the largest amount of data for the given dates and pollutants
 #' @export
 #' @examples maxDistSites("01/01/83 00:00","12/31/86 00:00",50,100,"SO4",1)
 
@@ -135,4 +135,4 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   return(reList)
 }
 #long    	 = geoCSV$Long[geoCSV$siteID == cat[k]]
-#lat       = geoCSV$Lat[geoCSV$siteID == cat[k]]
+#lat       = geoCSV$Lat[geoCSV$siteID  == cat[k]]

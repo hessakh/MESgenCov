@@ -17,7 +17,7 @@ getSites(startdateStr, enddateStr, maxn, mins, comp, optR)
 
 \item{comp}{Vector of strings, strings of compounds}
 
-\item{optR}{String, option of region "N","NE","S","W",""}
+\item{optR}{String, option of region "N","S","W",""}
 }
 \value{
 Returns list of sites that have the largest amount of data for the given dates and compounds

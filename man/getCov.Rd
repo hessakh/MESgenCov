@@ -2,57 +2,30 @@
 % Please edit documentation in R/getCov.R
 \name{getCov}
 \alias{getCov}
-\title{creates covariance matrix from normalized NADP monitor data}
+\title{creates covariance matrix from normalized NADP monitor data
+gamma version with optional inputs}
 \usage{
-getCov(weeklyB, startdateStr, enddateStr, use36, siteAdd,
-  outlierDatesbySite, showOutliers, siteOutliers, comp, plotMulti, plotB,
-  sitePlot, plotAll, writeMat, seas, r, k)
+getCov(df)
 }
 \arguments{
-\item{weeklyB}{Binary, analyze weekly data, if F monthly data is analyzed}
-
-\item{startdateStr}{String, when to start analyzing data, format = "m/d/y H:M"}
-
-\item{enddateStr}{String, when to stop analyzing data, format = "m/d/y H:M"}
-
-\item{use36}{Binary, use 36 default sites}
-
-\item{siteAdd}{Vector, sites to add}
-
-\item{outlierDatesbySite}{Vector of String, Integer, list of sites and months to omit}
-
-\item{showOutliers}{Binary, show outliers for specific site}
-
-\item{siteOutliers}{String, specify siteID to check outliers}
-
-\item{comp}{Vector of Strings, compunds to include in analysis}
-
-\item{plotMulti}{Binary, plot multivariate analysis qq plot and outlier test}
-
-\item{plotB}{Binary, display plots of fit}
-
-\item{sitePlot}{Vector of Strings, of sites to plot}
-
-\item{plotAll}{Binary, plot all sites}
-
-\item{writeMat}{Binary, download cov.mat file in working directory}
-
-\item{seas}{Integer, period for model}
-
-\item{r}{Integer, degree of polynomial to fit}
-
-\item{k}{Integer, stopping term for fourier series}
-
-\item{outliersDates}{Integer, list of months/weeks (integers, 1 => 1st month/week) to omit}
+\item{df}{data frame of input}
 }
 \value{
 List of model summaries at each site, covariance matrix and plots if inputted as T
 }
 \description{
 creates covariance matrix from normalized NADP monitor data
+gamma version with optional inputs
 }
 \examples{
-  getCov(FALSE,"01/01/83 00:00","12/31/86 00:00",TRUE,
-  c("AK01","PA02"),c("IL19",9, "VT01",1,33),TRUE,
-  "VT01SO4",c("SO4"),FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+  getCov(structure(list(
+weeklyB = FALSE, startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
+use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL, showOutliers = FALSE,
+siteOutliers = NULL, comp = "SO4", plotMulti = FALSE, plotB = FALSE, sitePlot = NULL,
+plotAll = FALSE, writeMat = FALSE, seas = 12, r = 1, k = 1)
+,.Names = c("weeklyB","startdateStr","enddateStr","use36","siteAdd",
+           "outlierDatesbySite","showOutliers","siteOutliers","comp","plotMulti",
+           "plotB","sitePlot","plotAll","writeMat","seas","r","k") 
+,row.names = c(NA, -1L) 
+,class = "data.frame"))
 }

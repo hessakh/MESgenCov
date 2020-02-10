@@ -43,7 +43,7 @@
 
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
-library(MESgenCov2)
+library(MESgenCov)
 @
 <<include=FALSE>>=
 
@@ -81,14 +81,14 @@ The NADP maintains the NTN (National Trends Network); this network measures the 
 U.S.A. Our R package makes use of the weekly data measuring  mg/L of chemicals, such as sulfates, in collected precipitation. We also use the daily data measuring precipitation at each site. Both datasets are available in our package and can be loaded respectively as
 
 
-<<chunk1, include=TRUE>>=
+<<chunk1, include=TRUE, eval=TRUE>>=
  data("weeklyCSV")
  data("preDailyCSV")
 @
 
 A full description of the data can be obtained at \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-weekly-Meta.pdf}{NADP/NTN weekly meta}. For a full description of the daily precipitation data, see \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-daily-Meta.pdf}{NADP/NTN daily meta}. Small snapshots of the data can also be viewed using:
 
-<<chunk2,include=TRUE>>=
+<<chunk2,include=TRUE,eval=TRUE>>=
   weeklyCSV[1:6,c(1:4,9)]
 @
 
@@ -99,14 +99,14 @@ This outputs the first 6 rows, first 4 columns and 9th column of the weekly raw 
 
   \subsection{getCov}
   \label{sec:3.1}
-  \verb;getCov(); has 18 inputs that allow the user to specify the subset of data to analyze and gives the user options in displaying different parts of the analysis. A table of the input is given here:
+  \verb;getCov(); takes a 15 column dataframe as input where each column corresponds to one of the following user-specifications, given in the table below.The 15 specifications in the input allow the user to specify the subset of data to analyze and gives the user options in displaying different parts of the analysis.
 
   %%table
 
   <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
   text_tbl <- data.frame(
-  Arguments = c("weeklyB", "startdateStr", "enddateStr", "use36", "siteAdd",  "outlierDatesbySite", "showOutliers", "siteOutliers", "comp", "plotMulti", "plotB", "sitePlot", "plotAll", "writeMat", "seas", "r", "k"),
-  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "TRUE if default 36 sites should be added, FALSE otherwise", "Vector of strings of siteIDs", "Vector of time periods for specific sites (e.g. month 1 for VT01) to exclude from analysis", "TRUE if outliers of a specific site should be displayed", "Specify siteID string for outlier analysis", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "TRUE if plots of specific sites should be displayed", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model"
+  Arguments = c("weeklyB", "startdateStr", "enddateStr", "comp","use36", "siteAdd",  "outlierDatesbySite", "siteOutliers", "removeOutliers", "plotMulti", "sitePlot", "plotAll", "writeMat", "seas", "r", "k"),
+  Definition = c( "TRUE if weekly data should be analyzed and FALSE if monthly data should be analyzed", "Date and time of when to start analyzing the data, in the format = “m/d/y H:M”", "Date and time of when to stop analyzing the data, in the format = “m/d/y H:M”", "Vector of strings of pollutants or acidity levels to be analyzed, the pollutants name should be used as it appears in weeklyCSV", "TRUE if default 36 sites should be added, FALSE otherwise", "List of strings of siteIDs that should be analyzed", "List of sites where outliers should be analyzed","List of sites where outliers should be removed" ,"Specify siteID string for outlier analysis",  "TRUE if multivariate analysis plots should be displayed, FALSE otherwise", "Specify siteID to be plotted", "TRUE if plots for all sites should be displayed, FALSE otherwise", "TRUE if  .mat file of the resulting covariance matrix should be written in the working directory", "Approximate periodicity of data, typically 12 for monthly data and 52 for weekly data", "Integer <=5, see univariate model","Integer <= 5, see univariate model"
   )
   )
 @
@@ -120,14 +120,22 @@ library(kableExtra)
     column_spec(2, width = "30em") %>%
         kable_styling(latex_options = "striped")
 @
+A default set of inputs can be found in the internally stored dataframe "defaultInput". After storing it in a variable in the user's workspace the input can be changed in the following way:
+ <<chunckdfInput,include=TRUE,eval=TRUE>>=
+  data("defaultInput")
+  df <- defaultInput
+  df
+  df$enddateStr   <- "12/31/88 00:00"
+ @
 
 The function \texttt{getCov} produces the following outputs:
 \begin{enumerate}
 
 \item Multivariate and univariate normality
-<<chunckCovMult,include=TRUE,eval=FALSE>>=
-    g2 <-getCov(FALSE,"01/01/83 00:00", "12/31/88 00:00",TRUE,NULL,
-         NULL,TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3)
+<<chunckCovnewInput,include=TRUE,eval=TRUE>>=
+  df$plotMulti    <- TRUE
+  df$k            <- 3
+  g <-getCov(df)
 @
 
 \begin{center}
@@ -142,7 +150,7 @@ The function \texttt{getCov} produces the following outputs:
 %%add figure of code ^^
 
 <<chunckCuni,include=TRUE,eval=FALSE>>=
-    g2$univariateTest
+  g$univariateTest
 @
 %%
 
@@ -152,10 +160,12 @@ The function \texttt{getCov} produces the following outputs:
 
 
 \item Outlier test for specific tests
-<<chunckCovSite,include=TRUE,eval=FALSE>>=
-g2<-getCov(FALSE,"01/01/83 00:00", "12/31/88 00:00",TRUE,c("OH71","NY08"),
-           NULL,TRUE,"IN41SO4","SO4",FALSE,TRUE,"IN41",FALSE,FALSE,12,1,3,)
-g2$rosnerTest
+<<chunckCovSite,include=TRUE,eval=TRUE>>=
+  df$siteOutliers <- list(c("IN41"))
+  df$sitePlot     <- "IN41"
+  g <- getCov(df)
+  i <- match("IN41",g$sites)
+  g$rosnerTest[[i]]
 @
 %%
 \begin{center}
@@ -163,13 +173,9 @@ g2$rosnerTest
 \end{center}
 
 
-
-By changing the input we can remove the outliers detected by the rosner test
-%bottom code should be based on actual outliers, make sure to change accordingly!
 <<chunckCovSiteOutremoved,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),
-         c("IN41",25),TRUE,"IN41SO4","SO4",FALSE,FALSE,NULL,FALSE,
-         FALSE,12,1,3)
+  df$outlierDatesbySite <- c("IN41",25)
+  getCov(df)
 @
 \begin{center}
 \includegraphics[width = 75mm]{IN41trans}
@@ -178,8 +184,8 @@ By changing the input we can remove the outliers detected by the rosner test
 
 \item Plot all sites
 <<chunckCovPlotALL,include=TRUE,eval=FALSE>>=
-  getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",TRUE,c("OH71","NY08"),
-         c("OH71",1),TRUE,"OH71SO4","SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+  df$plotAll <- TRUE
+  getCov(df)
 @
 
 \begin{center}
@@ -189,9 +195,10 @@ By changing the input we can remove the outliers detected by the rosner test
 \item Covariance matrix
 %%%%Parsing results
 <<chunkCovResult,include=TRUE,eval=TRUE>>=
-  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
-                   c("OH71", "NY08", "WV18", "MI53", "NH02"),NULL,
-                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+  df$use36        <- FALSE
+  df$siteAdd      <- list(c("OH71", "WV18", "MI53"))
+  df$siteOutliers <- NULL
+  result          <- getCov(df)
   round(result$cov,digits = 4)
 @
 
@@ -200,9 +207,8 @@ By changing the input we can remove the outliers detected by the rosner test
 This is done by simply setting the 5th last input to TRUE then the .mat file will be saved to the user's current working directory.
 
 <<chunkCovMat,include=TRUE,eval=FALSE>>=
-  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
-                   c("OH71", "NY08", "WV18", "MI53", "NH02"),NULL,
-                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,TRUE,12,1,3)
+  df$writeMat <- TRUE
+  result      <- getCov(df)
 @
 
 
@@ -210,14 +216,10 @@ This is done by simply setting the 5th last input to TRUE then the .mat file wil
 \item Univariate model summaries
 %%%%Parsing results
 <<chunkListModResult,include=TRUE,eval=TRUE>>=
-  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
-                   c("OH71", "NY08", "WV18", "MI53", "NH02"),
-                   NULL,FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
-  options(digits=3)
-  sites <- result$sites
+  result <- getCov(df)
+  sites  <- result$sites
   il = match(c("OH71"),sites)
   result$listMod[il]
-  
 @
 
 \item Output all MVN package analysis\\
@@ -227,11 +229,8 @@ This is done by simply setting the 5th last input to TRUE then the .mat file wil
 The following output is a call to the MVN package that produces mutivariate analysis based on the Mardia method, univariate analysis based on the Shapiro-Wilson method and an multivariate outlier test that is presented as a plot and not as an output in the user's R console.
 
 
-
 <<chunkMVNResult,include=TRUE,eval=TRUE>>=
-  result <- getCov(FALSE,"01/01/83 00:00", "12/31/86 00:00",FALSE,
-                   c("OH71", "WV18", "MI53"),NULL,
-                   FALSE,NULL,"SO4",FALSE,FALSE,NULL,FALSE,FALSE,12,1,3)
+  result <- getCov(df)
   result$mvn
 @
 
@@ -242,13 +241,20 @@ The specific call the the MVN package is,
      tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", 
      univariateTest = "SW",  univariatePlot = "none", multivariatePlot ="none", 
      multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
-     showOutliers = FALSE, showNewData = FALSE).
+     showOutliers = FALSE, showNewData = FALSE)
 
 @
 
 See \cite{MVN} for details on the MVN package.
-\end{enumerate}
 
+\item Output dataframe of residuals\\
+<<chunkdfRes,include=TRUE,eval=TRUE>>=
+  result <- getCov(df)
+  result$residualData[1:5,]
+@
+
+
+\end{enumerate}
 
   \subsection{Functions for getting a vector of sites}
     \label{sec:3.2}
@@ -269,7 +275,67 @@ The 4th input specifies the minimum sample of weekly data required to be include
 The function \texttt{maxDistSites()} prioritizes sites that are farther away from each other.
 
 <<maxDistSites1,include=TRUE,eval=TRUE>>=
-  maxDistSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4",1)
+  maxdist <- maxDistSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4",1)
+  maxdist$finalList
+@
+
+  \subsection{Lambert's W transformation on univariate data}
+    \label{sec:3.3}
+  For a number of sites the resdiuals produced by the deterministic model have skewed distributions with heavy tails. In particular, this is the case for many sites when the sample of data is taken over a period longer than 4 years. To deal with this issue we've incorporated functions from the LambertW package (see \cite{LambertW})in the function \texttt{lambertWtransform()} that will allow a user to transform the residuals produced by the deterministic univariate model. The LambertW package estimates the parameters that fit a LamberW distribution on the given univariate data. Then the underlying gaussian distribution implied by the LambertW distribution is extracted and is used for the multivariate analysis in the function \texttt{lambertWtransform()}. The \texttt{lambertWtransform()} function takes the following as input: a dataframe of residuals, and two binary inputs specifying whether to plot the multivariate qq plot and whether to produce the mat file containing the covariance matrix with the Lambert W transformed residuals. Details on the algorithms that perform the transformation can be found in \cite{LambertW2}.
+  
+<<lambert1,include=TRUE,eval=TRUE>>=
+  data("dfRes50")
+  loutput <- lambertWtransform(dfRes = dfRes50, plotMulti = FALSE, writeMat = FALSE)
+  loutput$mvn$multivariateNormality
+@
+
+ This function will produce a list of four elements that can be called using the following names:
+  <<lambert2,include=TRUE,eval=FALSE>>=
+  data("dfRes50")
+  dfRes50 <- dfRes50
+  loutput <- lambertWtransform(dfRes = dfRes50, plotMulti = FALSE, writeMat = FALSE)
+  loutput$mvn
+  loutput$cov
+  loutput$newResiduals
+  loutput$univariateTest
+@
+ 
+ \begin{enumerate}
+   \item \texttt{loutput\$mvn} will show the results of applying the multivariate analysis by the MVN package
+   \item \texttt{loutput\$cov} will output the covariance matrix produced by the transformed residuals
+   \item \texttt{loutput\$newResiduals} will output the dataframe of Lambert W transformed         residuals
+   \item \texttt{loutput\$univariateTest} will output the univariate tests produced by the MVN function for the   transformed residuals
+ \end{enumerate}
+  
+<<chunckIndExample,include=TRUE,eval=FALSE>>=
+#get list of sites
+maxd  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,200,"SO4",1)
+#create input dataframe
+df <- defaultInput
+
+df$siteAdd      <- list(maxd$finalList)
+df$startdateStr <- maxd$startDate
+df$use36        <- FALSE
+df$comp         <- maxd$comp
+df$enddateStr   <- maxd$endDate
+df$writeMat     <- TRUE
+output          <- getCov(df)
+output$mvn$multivariateNormality
+
+loutput <- lambertWtransform(output$residualData, TRUE,FALSE)
+loutput$mvn$multivariateNormality
+@
+
+<<chunckExampleInd,include=TRUE,eval=TRUE>>=
+maxd1  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,200,"SO4",1)
+df <- defaultInput
+df$comp         <- maxd1$comp
+df$enddateStr   <- maxd1$endDate
+df$startdateStr <- maxd1$startDate
+df$siteAdd      <- list(maxd1$finalList)
+result          <- getCov(df)
+indp            <- independenceTest(result$residualData)
+indp$test
 @
 
 \section{Methodology}
@@ -334,6 +400,16 @@ Periodic trends are captured via a truncated Fourier series, truncated at level 
 The simple model \eqref{simplemodel} is this one with $r=1$, $k=1$ and $S=12$.
 
 
+\subsection{Internal data sets}
+
+<<chunckExamplemax,include=TRUE,eval=FALSE>>=
+#sites with maximum distance data sets, get 50 sites
+maxd1  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,250,"SO4",1) 
+maxd2  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"SO4",1) 
+maxd3  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"NO3",1) 
+maxd4  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"Na",1)  
+maxd5  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"NH4",1) 
+@
 
 \section*{Acknowledgments} J. Lee was funded by the
 Air Force Office of Scientific Research (Complex Networks program), FA9550-19-1-0175.

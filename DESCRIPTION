@@ -8,12 +8,12 @@ Maintainer: Hessa Al-Thani <hessa.k.h9@gmail.com>
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true
-Imports: MVN, stringr, lubridate, EnvStats, rmatio, kableExtra
+Imports: MVN, stringr, lubridate, EnvStats, rmatio, kableExtra, LambertW
 Suggests: 
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-Description: Performs multivariate normality tests and graphical approaches and
+Description: This package performs multivariate normality tests and graphical approaches and
     implements multivariate outlier detection and univariate normality of marginal
     distributions through plots and tests, and performs multivariate Box-Cox transformation 
 License: GPL (>= 2)

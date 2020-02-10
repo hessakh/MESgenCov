@@ -10,13 +10,12 @@
 #'@examples
 #'   getCov(structure(list(
 #'weeklyB = FALSE, startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
-#'use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL, showOutliers = FALSE,
-#'siteOutliers = NULL, comp = "SO4", plotMulti = FALSE, plotB = FALSE, sitePlot = NULL,
-#'plotAll = FALSE, writeMat = FALSE, seas = 12, r = 1, k = 1)
-#',.Names = c("weeklyB","startdateStr","enddateStr","use36","siteAdd",
-#'            "outlierDatesbySite","showOutliers","siteOutliers","comp","plotMulti",
-#'            "plotB","sitePlot","plotAll","writeMat","seas","r","k") 
-#',row.names = c(NA, -1L) 
+#'comp = "SO4", use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL,
+#'siteOutliers = NULL,  removeOutliers = NULL, plotMulti = FALSE,  sitePlot = NULL,
+#'plotAll = FALSE, writeMat = FALSE, seas = 12, r = 1, k = 1),
+#'.Names = c("weeklyB","startdateStr","enddateStr","comp","use36","siteAdd",
+#'"outlierDatesbySite","siteOutliers","removeOutliers","plotMulti","sitePlot",
+#'"plotAll","writeMat","seas","r","k")  ,row.names = c(NA, -1L) 
 #',class = "data.frame"))
 
 
@@ -37,14 +36,16 @@ getCov<- function(df){
   }
   
   ##code for optional input functionality
+  dfInp <- df
   weeklyB      <- df$weeklyB
   startdateStr <- df$startdateStr
   enddateStr   <- df$enddateStr
+  comp         <- df$comp
   use36        <- df$use36
   siteAdd      <- df$siteAdd
   outlierDatesbySite <- df$outlierDatesbySite
   siteOutliers <- df$siteOutliers
-  comp         <- df$comp
+  removeOutlier <-df$removeOutliers 
   plotMulti    <- df$plotMulti
   sitePlot     <- df$sitePlot
   plotAll      <- df$plotAll
@@ -127,12 +128,13 @@ getCov<- function(df){
   
   tl   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
   to   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
-  y0    <- vector(mode="list", length=(length(cati)*length(obs))) #monthly/weekly concentraition values
+  y0   <- vector(mode="list", length=(length(cati)*length(obs))) #monthly/weekly concentraition values
   y    <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line 	omitted NA values
   y2   <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line w/ NA values
   co   <- vector(mode="list", length=(length(cati)*length(obs))) #model coefficient
   inter<- vector(mode="numeric",length=(length(cati)*length(obs))) #model intercept
   e    <- vector(mode="list", length=(length(cati)*length(obs))) #error
+  e2   <- vector(mode="list", length=(length(cati)*length(obs))) #error
   mods <- vector(mode="list", length=(length(cati)*length(obs))) #model summaries
   vpredl <- vector(mode="list", length=(length(cati)*length(obs))) #list of vector of predictions
   
@@ -160,6 +162,7 @@ getCov<- function(df){
       tl[[s]]     <- NA
       to[[s]]     <- NA
       e[[s]]      <- NA
+      e2[[s]]     <- NA
       y[[s]]      <- NA
       y0[[s]]     <- NA
       y2[[s]]     <- NA
@@ -234,6 +237,12 @@ getCov<- function(df){
       summary(mod)
       mods[[s]] <- summary(mod)
       to[[s]] <- t
+      tc <- data.frame(1:totT)
+      currResi <- data.frame(cbind(t,er))
+      colnames(currResi) <- c("t","error")
+      colnames(tc)      <- c("t")
+      cR       <- merge(tc,currResi,by = "t", all = TRUE) #merge(dfRes,currRes, by = "t", all = F)
+      e2[[s]] <-cR[,2]
       
       #fill in missing t
       inter1 <- unname(mod$coefficients[1])
@@ -255,28 +264,19 @@ getCov<- function(df){
         }else{coef <- c(coef, unname(mod$coefficients[j]))}
       }
       
-      #construct predicted value vector
-      vpred <- rep(inter1,totT)
-      coefi <- 2    # coefficient index
-      for (z in 1:totT){
-        for (m in 1:kk){
-          vpred[z] <- vpred[z] + coef[coefi]*cos(z*(2*pi/seas)*m) + coef[coefi+1]*sin(z*(2*pi/seas)*m)
-          coefi <- coefi+2
-        }
-        coefi = coefi + (5-kk)*2 #jump to time var coef
-        for (n in 1:r){
-          vpred[z] <- vpred[z] + coef[coefi]*(z^n)
-          coefi <- coefi+1
-        }
-        coefi <- 2 #restart index for new point
-      }
-      
+      #store predicted value vector
+      if(length(to[[s]]) < totT){
+        new   <- data.frame(1:totT)
+        vpred <- predict(mod,newdata = new)
+      }else{vpred <- predict(mod)}
+
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
           cy1 <- vpred[i-fi]
           #cy2 + rnorm(1,0,se1) #for maintaining variance
           ry1 <- y1[kl:length(y1)]
           ry2i <- y2i[kl:length(y2i)]
+          set.seed(i+s)
           e0 <- rnorm(1,0,se1)
           y1 <- c(y1[1:kl-1],cy1+e0,ry1)
           y2i <- c(y2i[1:kl-1],NA,ry2i) #missing = 0 rn, rnorm(1,0,se1)
@@ -291,7 +291,7 @@ getCov<- function(df){
       tl[[s]]    <- t
       e[[s]]     <- unname(er)
       y[[s]]     <- y1
-      #y2[[s]]    <- y2i
+      y2[[s]]    <- y2i
       co[[s]]    <- coef
       inter[s]   <- inter1
       vpredl[[s]] <- vpred
@@ -319,7 +319,9 @@ getCov<- function(df){
   tc <- 1:totT
   #loop to create dataframe of all residuals
   dfRes <- cbind(tc,e[[1]])
+  dfRes2 <- cbind(tc,e2[[1]]) #with NA values
   colnames(dfRes) <- c("t",paste(cati[1],obs[1], sep=""))
+  colnames(dfRes2) <- c("t",paste(cati[1],obs[1], sep=""))
   for( i in 2:(length(cati)*length(obs))){
     if (i%%(length(cati)) == 1){obsi = obsi + 1; si = 1}
     if(!is.na(e[[i]])){
@@ -327,6 +329,9 @@ getCov<- function(df){
       colnames(currRes) <- c("t",paste0(cati[si],obs[obsi]))
       dfRes   <- merge(dfRes,currRes, by = "t", all = F)
     }
+    currRes2 <- cbind(tc,e2[[i]])
+    colnames(currRes2) <- c("t",paste0(cati[si],obs[obsi]))
+    dfRes2   <- merge(dfRes2,currRes2, by = "t", all = TRUE)
     si <- si+1
   }
   #create covariance matrix
@@ -347,33 +352,66 @@ getCov<- function(df){
     MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }
+  rosnerT   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
   siteRosner = NULL
   if(showOutliers == TRUE){
-    #find outliers in each site
-    #Store Site outliers
-    i <- match(siteOutliers,colnames(dfRes))
-    if(is.na(i)){
-      message("siteOutliers string doesn't match any colnames, these are the options:")
-      print(colnames(dfRes))
-      siteRosner = NULL}
-    else{siteRosner = rosnerTest(dfRes[,i])}
-    
+    if (length(siteOutliers[[1]])==1){
+      #find outliers in each site
+      #Store Site outliers
+      i <- match(siteOutliers[[1]][1],cati)
+      if(is.na(i)){
+        message("siteOutliers string doesn't match any colnames, these are the options:")
+        print(colnames(dfRes))
+        siteRosner = NULL}
+      else{siteRosner = rosnerTest(dfRes[,i+1])
+          rosnerT[[i]] <- rosnerTest(dfRes[,i+1])}
+    }else if (length(siteOutliers[[1]]) > 1){
+      for (z in 1:length(siteOutliers[[1]])){
+        i <- match(siteOutliers[[1]][z],cati)
+        if(is.na(i)){
+          message("siteOutliers string doesn't match any colnames, these are the options:")
+          print(colnames(dfRes))
+          siteRosner = NULL
+        }else{siteRosner = c(siteRosner, rosnerTest(dfRes[,i+1]))
+              rosnerT[[i]] <- rosnerTest(dfRes[,i+1])}
+      }
+    }
   }
+  if(!is.null(removeOutlier)){
+    if(siteOutliers[[1]] %contain% removeOutlier[[1]]){
+      if(length(removeOutlier[[1]])>=2){
+        sitesOut <- removeOutlier[[1]]
+        outlierDatesbySite <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$outBySite
+        outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
+        updatedPars        <- reEvaluateSites(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
+                                              y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
+        #update all outputs here
+        dfRes   <- updatedPars$residualData
+        covxx   <- updatedPars$cov
+        MVDw    <- updatedPars$mvn
+      }
+    }else{
+      missingSites <- setdiff(removeOutlier[[1]], siteOutliers[[1]])
+      warning(paste0("Outliers were not removed because there exists site(s) ",
+                     missingSites," in removeOutliers that are not in siteOutliers."))}
+  }
+
+  #plots
   if(plotB == T){
     dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
     par(mar=c(4,4,2,2))
     i = match(sitePlot[1], cati)
     tc <- 1:totT
-    plot(tc,y2[[i]],ylim=c(-2, 3), ylab="Log sulfate concentration", xlab = "t (months)", main = toString(sitePlot[1]))
+    plot(t2,y2[[i]],ylim=c(-2, 3), ylab="Log sulfate concentration",main = toString(sitePlot[1]))
     par(new=TRUE)
-    plot(tc, vpredl[[i]], type="l"
-         ,col ="blue",ylim=c(-2, 3),ylab = "",xlab="")
+    lines(x = tc, y = vpredl[[i]], col ="red")
   }
   if(writeMat){
     write.mat(covxx,filename = "covSites.mat")
   }
   my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati,
-                  "mvn" = MVDw, "univariateTest" = univariateTest, "residualData" = dfRes[,-1],
-                  "rosnerTest" = siteRosner, "pred" = vpredl)
+                  "mvn" = MVDw, "univariateTest" = univariateTest, "residualData" = dfRes[,-1],"residualDataNA" = dfRes2[,-1],
+                  "rosnerTest" = rosnerT, "pred" = vpredl)
   return(my_list)
 }
+

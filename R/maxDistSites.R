@@ -134,5 +134,4 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
                  "endDate" = enddateStr, "comp" = comp)
   return(reList)
 }
-#long    	 = geoCSV$Long[geoCSV$siteID == cat[k]]
-#lat       = geoCSV$Lat[geoCSV$siteID  == cat[k]]
+

@@ -323,7 +323,7 @@ getCov<- function(df){
   dfRes2 <- cbind(tc,e2[[1]]) #with NA values
   colnames(dfRes) <- c("t",paste(cati[1],obs[1], sep=""))
   colnames(dfRes2) <- c("t",paste(cati[1],obs[1], sep=""))
-  for( i in 2:42){#(length(cati)*length(obs))){
+  for( i in 2:(length(cati)*length(obs))){
     if (i%%(length(cati)) == 1){obsi = obsi + 1; si = 1}
     if(!is.na(e[[i]])){
       currRes <- cbind(tc,e[[i]])

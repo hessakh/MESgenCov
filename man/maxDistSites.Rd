@@ -11,7 +11,7 @@ maxDistSites(startdateStr, enddateStr, maxn, mins, comp, startingSite)
 
 \item{enddateStr}{String, when to stop analyzing data, format = "m/d/y H:M"}
 
-\item{maxn}{Maximum number of sites required}
+\item{maxn}{Number of sites required}
 
 \item{mins}{Minimum number of data required for each site}
 
@@ -20,7 +20,7 @@ maxDistSites(startdateStr, enddateStr, maxn, mins, comp, startingSite)
 \item{startingSite}{Integer, largest sample index of initial site to include}
 }
 \value{
-Returns list of sites that have the largest amount of data for the given dates and compounds
+Returns list of sites that have the largest amount of data for the given dates and pollutants
 }
 \description{
 returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH

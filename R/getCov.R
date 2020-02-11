@@ -237,12 +237,12 @@ getCov<- function(df){
       summary(mod)
       mods[[s]] <- summary(mod)
       to[[s]] <- t
-      tc <- data.frame(1:totT)
+      tc       <- data.frame(1:totT)
       currResi <- data.frame(cbind(t,er))
       colnames(currResi) <- c("t","error")
       colnames(tc)      <- c("t")
       cR       <- merge(tc,currResi,by = "t", all = TRUE) #merge(dfRes,currRes, by = "t", all = F)
-      e2[[s]] <-cR[,2]
+      e2[[s]]  <- cR[,2]
       
       #fill in missing t
       inter1 <- unname(mod$coefficients[1])
@@ -313,7 +313,8 @@ getCov<- function(df){
   ############################END BIG LOOP##############################
   
   options(warn=-1)
-  dfRes <- NULL
+  dfRes  <- NULL
+  dfRes2 <- NULL
   si    <- 2
   obsi  <- 1
   tc <- 1:totT
@@ -322,7 +323,7 @@ getCov<- function(df){
   dfRes2 <- cbind(tc,e2[[1]]) #with NA values
   colnames(dfRes) <- c("t",paste(cati[1],obs[1], sep=""))
   colnames(dfRes2) <- c("t",paste(cati[1],obs[1], sep=""))
-  for( i in 2:(length(cati)*length(obs))){
+  for( i in 2:42){#(length(cati)*length(obs))){
     if (i%%(length(cati)) == 1){obsi = obsi + 1; si = 1}
     if(!is.na(e[[i]])){
       currRes <- cbind(tc,e[[i]])
@@ -331,7 +332,7 @@ getCov<- function(df){
     }
     currRes2 <- cbind(tc,e2[[i]])
     colnames(currRes2) <- c("t",paste0(cati[si],obs[obsi]))
-    dfRes2   <- merge(dfRes2,currRes2, by = "t", all = TRUE)
+    dfRes2   <- merge(dfRes2,currRes2, by = "t", all.x = TRUE,all.y = TRUE)
     si <- si+1
   }
   #create covariance matrix

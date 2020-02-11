@@ -1,3 +1,6 @@
+#'@keywords internal
+#'This function takes a dataframe with weekly precipitation and concentration values,
+#'
 aggregateMonthly <-
 function (binary,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
    	  sitem <- data.frame(matrix(ncol=3, nrow=totT))
@@ -31,46 +34,43 @@ function (binary,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
 		        if (yrm == lyrm && i == nrow(site)){
 		          sitem[j,3] <- ma/c
 		        }
-		      } else if(site[i,5] > yrm){
+		      } else if(is.na(match(yrm,site[,5]))){
+		        print(paste0("1yrm =  ",yrm))
+		        yrm <- site[i,5]
+		        print(paste0("1site =  ",site[i,5]))
+		      }else if(site[i,5] > yrm){
 		      	#monthly aggregate / recorded perciptation over the month
 		        sitem[j,3] <- ma/c
 		        c <- 1
 		        ma <- site[i,7 + siObs]
 		        yrm <- site[i,5]
-		        j = j+1
-		        sitem[j,1] <- yrm
-		        #store t
-		        if(sitem[j,1] - sitem[j-1,1] >= 89){#deals with jumps in year
-		          sitem[j,2] <- sitem[j,1] - sitem[j-1,1] + sitem[j-1,2] -89 +1
-		        }else{
-		          sitem[j,2] <- sitem[j,1] - sitem[j-1,1] + sitem[j-1,2] #tracks month
-		        }
+		        j <- match(yrm, sitem[,1])
 		      }
 		    }
     	}else{
-	    for (i in j:dim(site)[1]){
+	    for (i in j:nrow(site)){
+	      yrdiff     <- floor(site[i,5]/100)-floor(yrm/100)
 	      if(site[i,5] == yrm){
 	        ma <- ma + site[i,7+siObs]
 	        c <- c +1
 	        if (yrm == lyrm && i == nrow(site)){
 	          sitem[j,3] <- ma/sum(site[(i-c+1):i,6 + siObs])
 	        }
-	      } else if(site[i,5] > yrm){
+	      }else if(is.na(match(yrm,site[,5]))){
+	        #print(paste0("1yrm =  ",yrm))
+	        yrm <- site[i,5]
+	        #print(paste0("1site =  ",site[i,5]))
+	      } else if(site[i,5] > yrm){ #if row yrm is > curr yrm wrap up last yrm
 	      	#monthly aggregate / recorded perciptation over the month
 	      	if(sum(site[(i-c):(i-1),6 + siObs]) == 0){sump = NA}
-	      	else{sump = sum(site[(i-c):(i-1),6 + siObs])}
+	      	else{sump = sum(site[(i-c):(i-1),6 + siObs])} #sum of precepitation in month
 	        sitem[j,3] <- ma/sump
+	        #print(paste0("j =  ",j))
+	        #print(paste0("sitem[j, 3] =  ",sitem[j,3]))
 	        c <- 1
-	        ma <- site[i,7+siObs]
+	        ma  <- site[i,7 + siObs]
 	        yrm <- site[i,5]
-	        j = j+1
-	        sitem[j,1] <- yrm
-	        #store t
-	        if(sitem[j,1] - sitem[j-1,1] >= 89){#deals with jumps in year
-	          sitem[j,2] <- sitem[j,1] - sitem[j-1,1] + sitem[j-1,2] -89 +1
-	        }else{
-	          sitem[j,2] <- sitem[j,1] - sitem[j-1,1] + sitem[j-1,2] #tracks month
-	        }
+	        j <- match(yrm, sitem[,1])
 	      }
 	    }
 	}

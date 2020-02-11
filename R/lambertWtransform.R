@@ -53,6 +53,7 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat, fillin){
     x <- cbind(xhh,xh,xs)
     pvals <- c(pxhh,pxh,pxs)
     maxT <- types1[which.max(pvals)]
+    x <- x[,which.max(pvals)]
     storeType <- c(storeType,maxT)
 
     ###### get input after filling in missing values

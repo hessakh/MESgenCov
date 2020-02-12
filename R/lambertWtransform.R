@@ -4,13 +4,12 @@
 #' @import MVN
 #' @param dfRes       dataframe, 
 #' @param plotMulti   Binary, 
-#' @param fillin   Binary, 
 
 #' @return             Returns a dataframe of LambertW transformed residuals
 #' @export
-#' @examples lambertWtransform(dfRes = dfRes50,plotMulti = FALSE, writeMat = FALSE)
+#' @examples lambertWtransform(data.frame(matrix(runif(n = 100), ncol = 5 )),plotMulti = FALSE, writeMat = FALSE)
 
-lambertWtransform <- function (dfRes,plotMulti,writeMat, fillin){
+lambertWtransform <- function (dfRes,plotMulti,writeMat){
 
   storeType <- NULL
   xhh       <- NULL
@@ -91,7 +90,6 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat, fillin){
   #produce univatiate tests for transformed data
   if(plotMulti){
     plotM = "qq"
-    dev.new()
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
     par(mfrow = c(1,2))
   }else{plotM = "none"}

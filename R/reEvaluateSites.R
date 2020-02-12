@@ -40,11 +40,12 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
       mar = c(0,0,0,0) + 0.1)
   for(s in 1:length(outSites)){
     #need to test this part for multiple compounds
+    ss <- s # index for site plots, see bottom of loop
     s  <- match(outSites[s],cati)
     si <- s
     s  <- s + (obsi-1)*length(cati)
     #change obs
-    if (s%%(length(cati)) == 1 && s != 1){obsi = obsi + 1; si = 1}
+    #if (s%%(length(cati)) == 1 && s != 1){obsi = obsi + 1; si = 1}
     
     #filter site (weekly concentration data)
     
@@ -151,21 +152,11 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
         }else{coef <- c(coef, unname(mod$coefficients[j]))}
       }
       
-      #construct predicted value vector
-      vpred <- rep(inter1,totT)
-      coefi <- 2    # coefficient index
-      for (z in 1:totT){
-        for (m in 1:kk){
-          vpred[z] <- vpred[z] + coef[coefi]*cos(z*(2*pi/seas)*m) + coef[coefi+1]*sin(z*(2*pi/seas)*m)
-          coefi <- coefi+2
-        }
-        coefi = coefi + (5-kk)*2 #jump to time var coef
-        for (n in 1:r){
-          vpred[z] <- vpred[z] + coef[coefi]*(z^n)
-          coefi <- coefi+1
-        }
-        coefi <- 2 #restart index for new point
-      }
+      #store predicted value vector
+      if(length(to[[s]]) < totT){
+        new   <- data.frame(1:totT)
+        vpred <- predict(mod,newdata = new)
+      }else{vpred <- predict(mod)}
       
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
@@ -193,15 +184,14 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
       vpredl[[s]] <- vpred
       #plot all sites if indicated by user
       if(plotAll == T){
-        if(s%%4 == 1 && s!=1){
+        if(ss%%4 == 1 && ss!=1){
           dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           par(mfrow = c(2,2))}
         par(mar=c(4,4,2,2))
         tc <- 1:totT
-        plot(t2,y2[[s]],ylim=c(-2, 3), ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        plot(t2,y2[[s]], ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         par(new=TRUE)
         lines(x = tc, y = vpred, col ="blue")
-        #plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
       }
     }
     si <- si + 1
@@ -238,6 +228,6 @@ if(plotMulti){
     MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }
-big_list <- list("mvn" = MVDw, "residualData" = dfRes, "cov" = covxx)
+big_list <- list("mvn" = MVDw, "residualData" = dfRes, "cov" = covxx, "pred" = vpredl)
 return(big_list)
 }

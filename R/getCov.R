@@ -61,7 +61,7 @@ getCov<- function(df){
     plotB = FALSE
   }else{plotB = TRUE}
   
-  #####
+  ##### store data
   
   conCSV <- weeklyCSV
   preCSV <- na.omit(preDailyCSV)
@@ -75,12 +75,15 @@ getCov<- function(df){
   startdate <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
   enddate   <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
   nonneg <- 0
+  diff <- difftime(as.POSIXct(ed1,origin = origin), as.POSIXct(sd1,origin = origin), units = "days")
   if(weeklyB){
     totT <- as.integer(difftime(enddate,startdate,units="weeks"))
     nonneg <- 1
     if(is.null(seas)){seas = 52}
   }else if(!(floor(mondf(startdate,enddate))==(mondf(startdate,enddate)))){# won't happen because code wont produce decimals
     stop("Number of months is not integer")
+  }else if(diff <= 31){
+    stop("Number of months is less than or equal to one")
   }else{
     totT <- (mondf(startdate,enddate))+1
     if(is.null(seas)){seas = 12}
@@ -302,7 +305,7 @@ getCov<- function(df){
           par(mfrow = c(2,2))}
         par(mar=c(4,4,2,2))
         tc <- 1:totT
-        plot(t2,y2[[s]],ylim=c(-2, 3), ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        plot(t2,y2[[s]], ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         par(new=TRUE)
         lines(x = tc, y = vpred, col ="blue")
         #plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
@@ -339,10 +342,7 @@ getCov<- function(df){
   covxx <- data.frame(cov(dfRes[,-1]))
   options(warn=0)
   
-  
-  # filename <- paste(nameNewCov, ".csv", sep = "")
-  # cname = cname+1
-  # write.csv(covxx, file = filename)
+  #produce multivariate analysis
   par(mar=c(1,1,1,1))
   MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
@@ -390,22 +390,25 @@ getCov<- function(df){
         dfRes   <- updatedPars$residualData
         covxx   <- updatedPars$cov
         MVDw    <- updatedPars$mvn
+        #vpredl  <- updatedPars$pred
       }
     }else{
       missingSites <- setdiff(removeOutlier[[1]], siteOutliers[[1]])
+      str2 <- paste(missingSites, collapse= ", ")
       warning(paste0("Outliers were not removed because there exists site(s) ",
-                     missingSites," in removeOutliers that are not in siteOutliers."))}
+                     str2," in removeOutliers that are not in siteOutliers."))}
   }
-
   #plots
   if(plotB == T){
     dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
     par(mar=c(4,4,2,2))
     i = match(sitePlot[1], cati)
-    tc <- 1:totT
-    plot(t2,y2[[i]],ylim=c(-2, 3), ylab="Log sulfate concentration",main = toString(sitePlot[1]))
-    par(new=TRUE)
-    lines(x = tc, y = vpredl[[i]], col ="red")
+    if(!is.na(i)){
+      tc <- 1:totT
+      plot(t2,y2[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
+      par(new=TRUE)
+      lines(x = tc, y = vpredl[[i]], col ="red")
+    }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
   }
   if(writeMat){
     write.mat(covxx,filename = "covSites.mat")

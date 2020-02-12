@@ -1,3 +1,4 @@
+
 #'gets weekly values and concentrations from daily precipitayion data
 #'
 #'@param binary Is pH being analyzed on the current loop? T/F (generated automatically in loop)

@@ -99,7 +99,9 @@ This outputs the first 6 rows, first 4 columns and 9th column of the weekly raw 
 
   \subsection{getCov}
   \label{sec:3.1}
-  \verb;getCov(); takes a 15 column dataframe as input where each column corresponds to one of the following user-specifications, given in the table below.The 15 specifications in the input allow the user to specify the subset of data to analyze and gives the user options in displaying different parts of the analysis.
+  \subsubsection{Input}
+  
+  \verb;getCov(); takes a 15 column data frame as input where each column corresponds to one of the following user-specifications, given in the table below.The 15 specifications in the input allow the user to specify the subset of data to analyze and gives the user options in displaying different parts of the analysis.
 
   %%table
 
@@ -128,7 +130,30 @@ A default set of inputs can be found in the internally stored dataframe "default
   df$enddateStr   <- "12/31/88 00:00"
  @
 
+\subsubsection{Output}
+
+
 The function \texttt{getCov} produces the following outputs:
+%
+    <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
+    text_tbl2 <- data.frame(
+    Output = c("cov", "listMod", "sites", "mvn","univariateTest", "residualData",  "residualDataNA", "rosnerTest", "pred"),
+    Definition = c( "Covariance matrix produced by univariate model residuals", "List of univariate model summaries produced by lm()", "List of sites that were analyzed", "Output of the MVN package","univariate test output, also by the MVN package", "Data frame of residuals produced by the univariate model",  "Data frame of residuals, where missing values are ledt as NA", "Output of the rosner test for outlier analysis produced by the EnvStats package", "List of predicted values produced by the univariate model for each site")
+    )
+ @
+
+ <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
+ library(magrittr)
+ library(kableExtra)
+     kable(text_tbl2, format = "latex", booktabs = T) %>%
+     kable_styling(full_width = F) %>%
+     column_spec(1, bold = T, color = "black") %>%
+     column_spec(2, width = "30em") %>%
+         kable_styling(latex_options = "striped")
+ @
+
+Here we present some examples of the various outputs.
+
 \begin{enumerate}
 
 \item Multivariate and univariate normality
@@ -142,21 +167,13 @@ The function \texttt{getCov} produces the following outputs:
 \includegraphics[width = 75mm]{pic1GetCov}
 \end{center}
 
-% Remove suggested outliers
-% <<chunckCovMultOut,include=TRUE,eval=FALSE>>=
-%   getCov(FALSE,"01/01/83 00:00", "12/31/89 00:00",TRUE,NULL,NULL,
-%          FALSE,NULL,"SO4",TRUE,TRUE,"OH49",FALSE,FALSE,12,1,3)
-% @
-%%add figure of code ^^
 
-<<chunckCuni,include=TRUE,eval=FALSE>>=
-  g$univariateTest
+
+<<chunckCuni,include=TRUE,eval=TRUE>>=
+  g$univariateTest[1:5]
 @
 %%
 
-\begin{center}
-\includegraphics[width = 75mm]{g2univ}
-\end{center}
 
 
 \item Outlier test for specific tests
@@ -165,13 +182,8 @@ The function \texttt{getCov} produces the following outputs:
   df$sitePlot     <- "IN41"
   g <- getCov(df)
   i <- match("IN41",g$sites)
-  g$rosnerTest[[i]]
+  g$rosnerTest[[i]]$all.stats
 @
-%%
-\begin{center}
-\includegraphics[width = 70mm]{rosnerTest}
-\end{center}
-
 
 <<chunckCovSiteOutremoved,include=TRUE,eval=FALSE>>=
   df$outlierDatesbySite <- c("IN41",25)
@@ -180,6 +192,16 @@ The function \texttt{getCov} produces the following outputs:
 \begin{center}
 \includegraphics[width = 75mm]{IN41trans}
 \end{center}
+%%
+For all sites,
+
+<<chunckOutSiteAll,include=TRUE,eval=TRUE>>=
+  df$siteOutliers   <- list(g$sites)
+  df$removeOutliers <- list(g$sites)
+  g <- getCov(df)
+  
+@
+
 
 
 \item Plot all sites
@@ -195,11 +217,12 @@ The function \texttt{getCov} produces the following outputs:
 \item Covariance matrix
 %%%%Parsing results
 <<chunkCovResult,include=TRUE,eval=TRUE>>=
-  df$use36        <- FALSE
-  df$siteAdd      <- list(c("OH71", "WV18", "MI53"))
-  df$siteOutliers <- NULL
-  result          <- getCov(df)
-  round(result$cov,digits = 4)
+  df$use36          <- FALSE
+  df$siteAdd        <- list(c("OH71", "WV18", "MI53"))
+  df$siteOutliers   <- NULL
+  df$removeOutliers <- NULL
+  g                 <- getCov(df)
+  round(g$cov,digits = 4)
 @
 
 \item Save covariance matrix as .mat file
@@ -208,7 +231,7 @@ This is done by simply setting the 5th last input to TRUE then the .mat file wil
 
 <<chunkCovMat,include=TRUE,eval=FALSE>>=
   df$writeMat <- TRUE
-  result      <- getCov(df)
+  g           <- getCov(df)
 @
 
 
@@ -216,10 +239,9 @@ This is done by simply setting the 5th last input to TRUE then the .mat file wil
 \item Univariate model summaries
 %%%%Parsing results
 <<chunkListModResult,include=TRUE,eval=TRUE>>=
-  result <- getCov(df)
-  sites  <- result$sites
-  il = match(c("OH71"),sites)
-  result$listMod[il]
+  sites  <- g$sites
+  i = match(c("OH71"),sites)
+  g$listMod[i]
 @
 
 \item Output all MVN package analysis\\
@@ -230,8 +252,7 @@ The following output is a call to the MVN package that produces mutivariate anal
 
 
 <<chunkMVNResult,include=TRUE,eval=TRUE>>=
-  result <- getCov(df)
-  result$mvn
+  g$mvn
 @
 
 The specific call the the MVN package is,
@@ -249,8 +270,7 @@ See \cite{MVN} for details on the MVN package.
 
 \item Output dataframe of residuals\\
 <<chunkdfRes,include=TRUE,eval=TRUE>>=
-  result <- getCov(df)
-  result$residualData[1:5,]
+  g$residualData[1:5,]
 @
 
 
@@ -283,7 +303,7 @@ The function \texttt{maxDistSites()} prioritizes sites that are farther away fro
     \label{sec:3.3}
   For a number of sites the resdiuals produced by the deterministic model have skewed distributions with heavy tails. In particular, this is the case for many sites when the sample of data is taken over a period longer than 4 years. To deal with this issue we've incorporated functions from the LambertW package (see \cite{LambertW})in the function \texttt{lambertWtransform()} that will allow a user to transform the residuals produced by the deterministic univariate model. The LambertW package estimates the parameters that fit a LamberW distribution on the given univariate data. Then the underlying gaussian distribution implied by the LambertW distribution is extracted and is used for the multivariate analysis in the function \texttt{lambertWtransform()}. The \texttt{lambertWtransform()} function takes the following as input: a dataframe of residuals, and two binary inputs specifying whether to plot the multivariate qq plot and whether to produce the mat file containing the covariance matrix with the Lambert W transformed residuals. Details on the algorithms that perform the transformation can be found in \cite{LambertW2}.
   
-<<lambert1,include=TRUE,eval=TRUE>>=
+<<lambert1,include=TRUE,eval=FALSE>>=
   data("dfRes50")
   loutput <- lambertWtransform(dfRes = dfRes50, plotMulti = FALSE, writeMat = FALSE)
   loutput$mvn$multivariateNormality
@@ -326,15 +346,15 @@ loutput <- lambertWtransform(output$residualData, TRUE,FALSE)
 loutput$mvn$multivariateNormality
 @
 
-<<chunckExampleInd,include=TRUE,eval=TRUE>>=
+<<chunckExampleInd,include=TRUE,eval=FALSE>>=
 maxd1  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,200,"SO4",1)
 df <- defaultInput
 df$comp         <- maxd1$comp
 df$enddateStr   <- maxd1$endDate
 df$startdateStr <- maxd1$startDate
 df$siteAdd      <- list(maxd1$finalList)
-result          <- getCov(df)
-indp            <- independenceTest(result$residualData)
+g               <- getCov(df)
+indp            <- independenceTest(g$residualData)
 indp$test
 @
 

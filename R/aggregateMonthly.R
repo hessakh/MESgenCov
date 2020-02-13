@@ -34,11 +34,7 @@ function (binary,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
 		        if (yrm == lyrm && i == nrow(site)){
 		          sitem[j,3] <- ma/c
 		        }
-		      } else if(is.na(match(yrm,site[,5]))){
-		        print(paste0("1yrm =  ",yrm))
-		        yrm <- site[i,5]
-		        print(paste0("1site =  ",site[i,5]))
-		      }else if(site[i,5] > yrm){
+		      } else if(site[i,5] > yrm){
 		      	#monthly aggregate / recorded perciptation over the month
 		        sitem[j,3] <- ma/c
 		        c <- 1
@@ -56,17 +52,12 @@ function (binary,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
 	        if (yrm == lyrm && i == nrow(site)){
 	          sitem[j,3] <- ma/sum(site[(i-c+1):i,6 + siObs])
 	        }
-	      }else if(is.na(match(yrm,site[,5]))){
-	        #print(paste0("1yrm =  ",yrm))
-	        yrm <- site[i,5]
-	        #print(paste0("1site =  ",site[i,5]))
 	      } else if(site[i,5] > yrm){ #if row yrm is > curr yrm wrap up last yrm
 	      	#monthly aggregate / recorded perciptation over the month
 	      	if(sum(site[(i-c):(i-1),6 + siObs]) == 0){sump = NA}
 	      	else{sump = sum(site[(i-c):(i-1),6 + siObs])} #sum of precepitation in month
 	        sitem[j,3] <- ma/sump
-	        #print(paste0("j =  ",j))
-	        #print(paste0("sitem[j, 3] =  ",sitem[j,3]))
+	        #re-intialize monthly vars
 	        c <- 1
 	        ma  <- site[i,7 + siObs]
 	        yrm <- site[i,5]

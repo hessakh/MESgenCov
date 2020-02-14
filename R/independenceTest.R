@@ -12,11 +12,11 @@ independenceTest <- function(dfRes){
   testStat <- -(n-(2*m+5)/6)*determinant(R, logarithm = TRUE)$modulus
   chisqT  <- qchisq(.95, df=n)
   biChiSq <- testStat <= chisqT
-  out <- structure(list(
+  out <- structure(list(                                   #data frame of test output
      u = testStat, chiSq = chisqT, independent = biChiSq)
     ,.Names = c("chisq dist likelihood ratio","chisq","independent") 
     ,row.names = c(NA, -1L) 
     ,class = "data.frame")
-    
   result <- list("test" = out, "corr" = R)
 }
+

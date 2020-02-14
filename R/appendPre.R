@@ -4,7 +4,7 @@ appendPre <- function(site,preCSVs,obs,obsi,siObs,bi){
 	j <- 1
     k <- 1
 	if(bi == 1){
-		site[,6+obsi] <- (10^-(site[,5+obsi]))*1005 #convert pH to H+ mg/L
+		site[,6+obsi] <- (10^-(site[,5+obsi]))*1008 #convert pH to H+ mg/L
 		colnames(site)[6 + siObs] <- "H+ Conc"
 	}
 		for (i in 1:(dim(site)[1])){

@@ -8,7 +8,7 @@
 #'@return   List of model summaries at each site, covariance matrix and plots if inputted as T
 #'@export
 #'@examples
-#'   getCov(structure(list(
+#'   getCovL(structure(list(
 #'weeklyB = FALSE, startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
 #'comp = "SO4", use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL,
 #'siteOutliers = NULL,  removeOutliers = NULL, plotMulti = FALSE,  sitePlot = NULL,
@@ -19,7 +19,7 @@
 #',class = "data.frame"))
 
 
-getCov<- function(df){
+getCovL<- function(df){
   p=1 #for added functionality in the future
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -233,11 +233,11 @@ getCov<- function(df){
       t <- sitem$t
       tsitem <- sitem$t
       cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
-                     (I(cos(t*(2*pi/seas)*2)^p) + I(sin(t*(2*pi/seas)*2)^p))*kv[2] +
-                     (I(cos(t*(2*pi/seas)*3)^p) + I(sin(t*(2*pi/seas)*3)^p))*kv[3] +
-                     (I(cos(t*(2*pi/seas)*4)^p) + I(sin(t*(2*pi/seas)*4)^p))*kv[4] +
-                     (I(cos(t*(2*pi/seas)*5)^p) + I(sin(t*(2*pi/seas)*5)^p))*kv[5] +
-                   t*rv[1] + (t^2)*rv[2] + (t^3)*rv[3] + (t^4)*rv[4] + (t^5)*rv[5]
+        (I(cos(t*(2*pi/seas)*2)^p) + I(sin(t*(2*pi/seas)*2)^p))*kv[2] +
+        (I(cos(t*(2*pi/seas)*3)^p) + I(sin(t*(2*pi/seas)*3)^p))*kv[3] +
+        (I(cos(t*(2*pi/seas)*4)^p) + I(sin(t*(2*pi/seas)*4)^p))*kv[4] +
+        (I(cos(t*(2*pi/seas)*5)^p) + I(sin(t*(2*pi/seas)*5)^p))*kv[5] +
+        t*rv[1] + (t^2)*rv[2] + (t^3)*rv[3] + (t^4)*rv[4] + (t^5)*rv[5]
       df  <- data.frame(cbind(y1,cyclicTrend))
       df  <- data.frame(cbind(df,t))
       mod <- definelm(y1,t,df,r,kk,seas)
@@ -277,7 +277,7 @@ getCov<- function(df){
         new   <- data.frame(1:totT)
         vpred <- predict(mod,newdata = new)
       }else{vpred <- predict(mod)}
-
+      
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
           cy1 <- vpred[i-fi]
@@ -343,6 +343,9 @@ getCov<- function(df){
     dfRes2   <- merge(dfRes2,currRes2, by = "t", all.x = TRUE,all.y = TRUE)
     si <- si+1
   }
+  #
+  dfRes <- lambertWfit(dfRes = dfRes2)
+  
   #create covariance matrix
   covxx <- data.frame(cov(dfRes[,-1]))
   options(warn=0)
@@ -371,7 +374,7 @@ getCov<- function(df){
         print(colnames(dfRes))
         siteRosner = NULL}
       else{siteRosner = rosnerTest(dfRes[,i+1])
-          rosnerT[[i]] <- rosnerTest(dfRes[,i+1])}
+      rosnerT[[i]] <- rosnerTest(dfRes[,i+1])}
     }else if (length(siteOutliers[[1]]) > 1){
       for (z in 1:length(siteOutliers[[1]])){
         i <- match(siteOutliers[[1]][z],cati)
@@ -380,8 +383,8 @@ getCov<- function(df){
           print(cati)
           siteRosner = NULL
         }else{siteRosner = c(siteRosner, rosnerTest(dfRes[,i+1]))
-              rosnerT[[i]] <- rosnerTest(dfRes[,i+1])}
-              noutliers    <- noutliers + rosnerTest(dfRes[,i+1])$n.outliers
+        rosnerT[[i]] <- rosnerTest(dfRes[,i+1])}
+        noutliers    <- noutliers + rosnerTest(dfRes[,i+1])$n.outliers
       }
     }
   }
@@ -427,4 +430,3 @@ getCov<- function(df){
                   "rosnerTest" = rosnerT, "pred" = vpredl, "monthlyRaw" = sitem,"weeklyRaw" = site, "nOutliers"= noutliers)
   return(my_list)
 }
-

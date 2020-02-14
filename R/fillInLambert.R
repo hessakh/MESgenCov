@@ -17,7 +17,7 @@ fillInLambert <- function(resNA,fitgmm,maxT){
   }else if(maxT == "h"){
     g <- fitgmm$skewness.x
     t <- fitgmm$tau.init
-    d <- c(fitgmm$tau.init[3:4])
+    d <- c(fitgmm$tau.init[3])
     b <- c(fitgmm$tau.init[1:2])
     set.seed(i+100)
     estimate <- rLambertW(n = noNA, distname = "normal", theta =  list(beta = b, gamma = g), delta = d, tau = t)

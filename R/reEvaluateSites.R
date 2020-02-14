@@ -33,12 +33,13 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
   obsi <- 1
   siObs<- length(obs)
   oc   <- 1
-  
-  #par(mfrow=c(2,2))
-  dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-  par(mfrow = c(2,2),
-      oma = c(0,0,0,0) + 0.1,
-      mar = c(0,0,0,0) + 0.1)
+
+  if(plotAll){
+    dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+    par(mfrow = c(2,2),
+        oma = c(0,0,0,0) + 0.1,
+        mar = c(0,0,0,0) + 0.1)
+  }
   for(s in 1:length(outSites)){
     #need to test this part for multiple compounds
     ss <- s # index for site plots, see bottom of loop
@@ -55,16 +56,16 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
     
     if(nrow(conCSVk)==0 || nrow(preCSVk)==0){
       #store parameters
-      tl[[s]]     <- NA
-      to[[s]]     <- NA
-      e[[s]]      <- NA
-      y[[s]]      <- NA
-      y0[[s]]     <- NA
-      y2[[s]]     <- NA
-      co[[s]]     <- NA
-      inter[s]    <- NA
-      mods[[s]]   <- NA
-      vpredl[[s]] <- NA
+      tl[[s]]     <- NULL
+      to[[s]]     <- NULL
+      e[[s]]      <- NULL
+      y[[s]]      <- NULL
+      y0[[s]]     <- NULL
+      y2[[s]]     <- NULL
+      co[[s]]     <- NULL
+      inter[s]    <- NULL
+      mods[[s]]   <- NULL
+      vpredl[[s]] <- NULL
       message(paste0("Missing data for ", cati[si]," ",obs[obsi],
                      " check if site has data for inputted dates in data file weeklyCSV, preDailyCSV"))
     }else{

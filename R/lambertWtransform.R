@@ -61,6 +61,7 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
         fitgmm <- fitgmmhh
       }else if(maxT == "h"){
         fitgmm <- fitgmmh
+        print(paste0("i = ", i))
       }else{
         fitgmm <- fitgmms
       }
@@ -103,7 +104,6 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
   if(writeMat){
     write.mat(covxx,filename = "covSitesLambertW.mat")
   }
-
   
   my_list <- list("newResiduals" = newRes, "mvn" = MVDw15, "univariateTest" =  MVDw15$univariateNormality,
                   "cov" = covxx)

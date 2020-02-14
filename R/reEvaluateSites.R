@@ -12,7 +12,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
   enddateStr   <- df$enddateStr
   use36        <- df$use36
   siteAdd      <- df$siteAdd
-  outlierDatesbySite <- df$outlierDatesbySite
+  outlierDatesbySite <- c(outlierDatesbySite,df$outlierDatesbySite)
   siteOutliers <- df$siteOutliers
   comp         <- df$comp
   plotMulti    <- df$plotMulti
@@ -35,6 +35,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
   oc   <- 1
   
   #par(mfrow=c(2,2))
+  dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
   par(mfrow = c(2,2),
       oma = c(0,0,0,0) + 0.1,
       mar = c(0,0,0,0) + 0.1)
@@ -81,7 +82,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
       site <- na.omit(site)
       
       #aggregate precipitation data monthly and get concentration values
-      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
+      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo,diffYrm)
       }else{       sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
       
       if (length(outlierDatesbySite) != 0){
@@ -189,7 +190,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
           par(mfrow = c(2,2))}
         par(mar=c(4,4,2,2))
         tc <- 1:totT
-        plot(t2,y2[[s]], ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         par(new=TRUE)
         lines(x = tc, y = vpred, col ="blue")
       }

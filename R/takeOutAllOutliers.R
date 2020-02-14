@@ -5,8 +5,6 @@
 
 #' @return             Returns a dataframe of LambertW transformed residuals
 
-
-
 takeOutAllOutliers <- function(sites, rosnerResult,cati){
 
   datesBySiteVec <- NULL

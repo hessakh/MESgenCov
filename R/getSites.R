@@ -49,6 +49,10 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
 #tic()
   for (i in 1:length(obs)){
     obsiCSV <- match(obs[i],colnames(conCSV))
+    if(is.na(obsiCSV)){
+      str1 <- paste(colnames(conCSV[, seq(9, ncol(conCSV)-5, 2)]), collapse = ", ")
+      stop("Argument used in column comp of input data frame is not available. These are the options: ph, ", str1,".",collapse = " ")
+    }
     cn <- colnames(conCSVf)
     conCSVf[,5+i] <- conCSV[,obsiCSV]
     colnames(conCSVf) <- c(cn, obs[i])
@@ -124,5 +128,4 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
                       "endDate" = enddateStr, "comp" = comp)
       return(my_list)
   }
-
 }

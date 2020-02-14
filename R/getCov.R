@@ -72,30 +72,28 @@ getCov<- function(df){
   preCSVf  <- preCSV[,-1]
   
   
-  startdate <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
-  enddate   <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
+  startdate  <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
+  enddate    <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
+  strtYrMo   <- format(startdate,"%Y%m")
+  endYrMo    <- format(enddate,  "%Y%m")
+  strtYrMon  <- as.numeric(strtYrMo)
+  endYrMon   <- as.numeric(endYrMo)
+  yrdiff     <- (floor(endYrMon/100)- floor(strtYrMon/100))
+  mdiff      <- (endYrMon - floor(endYrMon/100)*100) - ((strtYrMon) - floor(strtYrMon/100)*100)
+  diffYrm    <- 12*yrdiff + mdiff + 1
   nonneg <- 0
-  diff <- difftime(as.POSIXct(ed1,origin = origin), as.POSIXct(sd1,origin = origin), units = "days")
   if(weeklyB){
     totT <- as.integer(difftime(enddate,startdate,units="weeks"))
     nonneg <- 1
     if(is.null(seas)){seas = 52}
-  }else if(!(floor(mondf(startdate,enddate))==(mondf(startdate,enddate)))){# won't happen because code wont produce decimals
+  }else if(!(floor(mondf(startdate,enddate))==(mondf(startdate,enddate)))){
     stop("Number of months is not integer")
-  }else if(diff <= 31){
+  }else if(diffYrm <= 1){
     stop("Number of months is less than or equal to one")
   }else{
     totT <- (mondf(startdate,enddate))+1
     if(is.null(seas)){seas = 12}
   }
-  
-  if(use36 == T){
-    cat36 <- c("AL10","IL11","IL18","IL19","IL35","IL47","IL63","IN34",
-               "IN41","MA01","MA13","MD13","MI09","MI26","MI53",
-               "NC03","NC34","NC41","NJ99","NY08","NY10","NY20",
-               "NY52","NY65","OH17","OH49","OH71","PA15","PA29",
-               "PA42","TN00","TN11","VA13","VT01","WI28","WV18")#from Guttorp, Le 1992
-  }else{cat36 <- NULL}
   
   cati   <- union(cat36,siteAdd[[1]])
   obs    <- comp
@@ -109,8 +107,6 @@ getCov<- function(df){
   }
   
   #filter by date
-  strtYrMo  <- format(startdate,"%Y%m")
-  endYrMo   <- format(enddate,  "%Y%m")
   conCSVf   <- conCSVf[conCSVf$yrmonth>=strtYrMo,]
   conCSVf   <- conCSVf[conCSVf$yrmonth<=endYrMo,]
   
@@ -122,6 +118,15 @@ getCov<- function(df){
   
   preCSVf$amount    <- as.numeric(preCSVf$amount) #change data type of column
   preCSVf <- preCSVf[preCSVf$amount>-0.0001,]     #filter out -/ive values
+  
+  #add default sites
+  if(use36 == T){
+    cat36 <- c("AL10","IL11","IL18","IL19","IL35","IL47","IL63","IN34",
+               "IN41","MA01","MA13","MD13","MI09","MI26","MI53",
+               "NC03","NC34","NC41","NJ99","NY08","NY10","NY20",
+               "NY52","NY65","OH17","OH49","OH71","PA15","PA29",
+               "PA42","TN00","TN11","VA13","VT01","WI28","WV18")#from Guttorp, Le 1992
+  }else{cat36 <- NULL}
   
   #initialize
   
@@ -146,7 +151,6 @@ getCov<- function(df){
   siObs<- length(obs)
   oc   <- 1
   
-  
   #par(mfrow=c(2,2))
   par(mfrow = c(2,2),
       oma = c(0,0,0,0) + 0.1,
@@ -156,7 +160,6 @@ getCov<- function(df){
     if (s%%(length(cati)) == 1 && s != 1){obsi = obsi + 1; si = 1}
     
     #filter site (weekly concentration data)
-    
     conCSVk <- conCSVf[conCSVf$siteID == toString(cati[si]),]
     preCSVk <- preCSVf[preCSVf$siteID == toString(cati[si]),]
     
@@ -190,7 +193,7 @@ getCov<- function(df){
       site <- na.omit(site)
       
       #aggregate precipitation data monthly and get concentration values
-      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
+      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo,diffYrm)
       }else{       sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
       
       if (length(outlierDatesbySite) != 0){
@@ -304,8 +307,8 @@ getCov<- function(df){
           dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           par(mfrow = c(2,2))}
         par(mar=c(4,4,2,2))
-        tc <- 1:totT
-        plot(t2,y2[[s]], ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        tc <- 1:length(vpred)
+        plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         par(new=TRUE)
         lines(x = tc, y = vpred, col ="blue")
         #plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
@@ -384,13 +387,15 @@ getCov<- function(df){
         sitesOut <- removeOutlier[[1]]
         outlierDatesbySite <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$outBySite
         outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
-        updatedPars        <- reEvaluateSites(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
-                                              y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
-        #update all outputs here
-        dfRes   <- updatedPars$residualData
-        covxx   <- updatedPars$cov
-        MVDw    <- updatedPars$mvn
-        #vpredl  <- updatedPars$pred
+        if(length(outlierDatesbySite) >= 2){
+          updatedPars        <- reEvaluateSites(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
+                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
+          #update all outputs here
+          dfRes   <- updatedPars$residualData
+          covxx   <- updatedPars$cov
+          MVDw    <- updatedPars$mvn
+          vpredl  <- updatedPars$pred
+        }
       }
     }else{
       missingSites <- setdiff(removeOutlier[[1]], siteOutliers[[1]])
@@ -415,7 +420,7 @@ getCov<- function(df){
   }
   my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati,
                   "mvn" = MVDw, "univariateTest" = univariateTest, "residualData" = dfRes[,-1],"residualDataNA" = dfRes2[,-1],
-                  "rosnerTest" = rosnerT, "pred" = vpredl)
+                  "rosnerTest" = rosnerT, "pred" = vpredl, "monthlyRaw" = sitem,"weeklyRaw" = site)
   return(my_list)
 }
 

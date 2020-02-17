@@ -8,13 +8,13 @@ Maintainer: Hessa Al-Thani <hessa.k.h9@gmail.com>
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true
-Imports: MVN, stringr, lubridate, EnvStats, rmatio, kableExtra, LambertW
+Imports: MVN, stringr, lubridate, EnvStats, rmatio, LambertW
 Suggests: 
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-Description: This package performs multivariate normality tests and graphical approaches and
-    implements multivariate outlier detection and univariate normality of marginal
-    distributions through plots and tests, and performs multivariate Box-Cox transformation 
+Description: This package performs multivariate normality tests on cavariance matricies produced by pollutant monitoring data.
+            Using the MVN and EnvStats package a user can asses the normality of the multivariate data and make changes to gaussianize the final multivariate distribution.
+            The aim of this package is to streamline the process of getting a validinput for the Maximum Entropy Sampling Problem (MESP).
 License: GPL (>= 2)
 RoxygenNote: 6.1.1

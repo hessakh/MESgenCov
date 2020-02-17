@@ -14,7 +14,7 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
 #tic()
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV"); data("preDailyCSV")})
+    try({data("weeklyCSV"); data("preDailyCSV");load("weeklyCSV.rda"); load("preDailyCSV.rda")})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -23,7 +23,7 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
   }
   #get data if it's not in the working directory
   if(!exists("NADPgeo")){
-    try({data("NADPgeo")})
+    try({data("NADPgeo");load("NADPgeo.rda")})
   }
   #check, still doesn't exist?
   if(!exists("NADPgeo")){

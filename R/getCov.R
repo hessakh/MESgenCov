@@ -19,7 +19,7 @@
 #',class = "data.frame"))
 
 
-getCov<- function(df){
+getCov <- function(df){
   p=1 #for added functionality in the future
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -65,6 +65,8 @@ getCov<- function(df){
   
   conCSV <- weeklyCSV
   preCSV <- na.omit(preDailyCSV)
+  conCSV$siteID <- toupper(conCSV$siteID) #combine data
+  preCSV$siteID <- toupper(preCSV$siteID)
   
   #filter out unnecessary columns
   conCSVf  <- conCSV[,-6:-31]
@@ -95,6 +97,14 @@ getCov<- function(df){
     if(is.null(seas)){seas = 12}
   }
   
+  #add default sites
+  if(use36){
+    cat36 <- c("AL10","IL11","IL18","IL19","IL35","IL47","IL63","IN34",
+               "IN41","MA01","MA13","MD13","MI09","MI26","MI53",
+               "NC03","NC34","NC41","NJ99","NY08","NY10","NY20",
+               "NY52","NY65","OH17","OH49","OH71","PA15","PA29",
+               "PA42","TN00","TN11","VA13","VT01","WI28","WV18")#from Guttorp, Le 1992
+  }else{cat36 <- NULL}
   cati   <- union(cat36,siteAdd[[1]])
   obs    <- comp
   
@@ -118,15 +128,7 @@ getCov<- function(df){
   
   preCSVf$amount    <- as.numeric(preCSVf$amount) #change data type of column
   preCSVf <- preCSVf[preCSVf$amount>-0.0001,]     #filter out -/ive values
-  
-  #add default sites
-  if(use36 == T){
-    cat36 <- c("AL10","IL11","IL18","IL19","IL35","IL47","IL63","IN34",
-               "IN41","MA01","MA13","MD13","MI09","MI26","MI53",
-               "NC03","NC34","NC41","NJ99","NY08","NY10","NY20",
-               "NY52","NY65","OH17","OH49","OH71","PA15","PA29",
-               "PA42","TN00","TN11","VA13","VT01","WI28","WV18")#from Guttorp, Le 1992
-  }else{cat36 <- NULL}
+
   
   #initialize
   
@@ -186,8 +188,7 @@ getCov<- function(df){
       site <- site[site[,5 + obsi]>-0.0001,]
       site <- site[order(site$dateon),]
       preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
-      conCSV$siteID <- toupper(conCSV$siteID) #combine data
-      preCSV$siteID <- toupper(preCSV$siteID)
+
       
       #aaggregates weekly precipitation
       if (obs[obsi] == "ph"){bi = 1}else{bi = 0}
@@ -393,7 +394,7 @@ getCov<- function(df){
         outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
         if(length(outlierDatesbySite) >= 2){
           updatedPars        <- reEvaluateSites(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
-                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
+                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo,diffYrm)
           #update all outputs here
           dfRes   <- updatedPars$residualData
           covxx   <- updatedPars$cov

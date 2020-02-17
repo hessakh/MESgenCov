@@ -4,6 +4,7 @@
 #' @import MVN
 #' @param dfRes       dataframe, 
 #' @param plotMulti   Binary, 
+#' @param writeMat   Binary, 
 
 #' @return             Returns a dataframe of LambertW transformed residuals
 #' @export
@@ -99,8 +100,6 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
                 multivariatePlot = plotM, multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
                 showOutliers = FALSE,showNewData = FALSE)
   covxx <- data.frame(cov(newRes))
-  #corrxx <- data.frame(cor(newRes))
-  write.mat(corrxx,filename = "corrSitesLambertW1.mat")
   if(writeMat){
     write.mat(covxx,filename = "covSitesLambertW.mat")
   }

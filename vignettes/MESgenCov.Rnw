@@ -36,7 +36,7 @@
 \author{Hessa Al-Thani$^1$ \qquad Jon Lee$^2$\\[0.35cm]
   {\small Dept. of Industrial and Operations Engineering, Univ. of Michigan, Ann Arbor, MI 48105 USA }\\[0.35cm]{\small{$^1$hessakh@umich.edu}} \qquad {\small{$^2$jonxlee@umich.edu}}
 }
-\date{\textbf{MESgenCov} \Sexpr{packageDescription("MESgenCov2")$Version}  }
+\date{\textbf{MESgenCov} \Sexpr{packageDescription("MESgenCov")$Version}  }
 %
 
 \begin{document}
@@ -44,9 +44,6 @@
 <<setup, include=FALSE, cache=FALSE>>=
 library(knitr)
 library(MESgenCov)
-@
-<<include=FALSE>>=
-
 @
 
 \maketitle
@@ -92,7 +89,7 @@ A full description of the data can be obtained at \href{http://NADP.slh.wisc.edu
   weeklyCSV[1:6,c(1:4,9)]
 @
 
-This outputs the first 6 rows, first 4 columns and 9th column of the weekly raw data, columns 5 to 8 contain data that isn't relevant to our analysis. 
+This outputs the first 6 rows, first 4 columns and 9th column of the weekly raw data, columns 5 to 8 contain data that isn't relevant to our analysis.
 \section{MESgenCov implementation}
 
  The \textbf{MESgenCov} package contains functions in the \texttt{S3} class to create a covariance matrix from the desired subset of NADP data. The function \verb;getCov(); returns a covariance matrix, a list of univariate model summaries, and a table of normality tests produced by the MVN R package. The covariance matrix is produced from a subset of the NADP/NTN data that is specified by the user. For sites with missing data, \verb;getCov(); will fill in predicted values based on the univariate model for each site (see section \ref{sec:3.1}). To avoid sites with a small sample size for the specified time-frame, the function \verb;getSites(); outputs a vector of the sites with the largest sample of data for a given time-frame and measured chemical (see section \ref{sec:3.2}). To find sites that are spatially ``spread out'' but have at least some specified sample size, the function \verb;maxDistSites(); can be used (see section \ref{sec:3.2}).
@@ -100,7 +97,7 @@ This outputs the first 6 rows, first 4 columns and 9th column of the weekly raw 
   \subsection{getCov}
   \label{sec:3.1}
   \subsubsection{Input}
-  
+
   \verb;getCov(); takes a 15 column data frame as input where each column corresponds to one of the following user-specifications, given in the table below.The 15 specifications in the input allow the user to specify the subset of data to analyze and gives the user options in displaying different parts of the analysis.
 
   %%table
@@ -170,7 +167,7 @@ Here we present some examples of the various outputs.
 
 
 <<chunckCuni,include=TRUE,eval=TRUE>>=
-  g$univariateTest[1:5]
+  g$univariateTest[1:5,]
 @
 %%
 
@@ -199,7 +196,7 @@ For all sites,
   df$siteOutliers   <- list(g$sites)
   df$removeOutliers <- list(g$sites)
   g <- getCov(df)
-  
+
 @
 
 
@@ -219,6 +216,7 @@ For all sites,
 <<chunkCovResult,include=TRUE,eval=TRUE>>=
   df$use36          <- FALSE
   df$siteAdd        <- list(c("OH71", "WV18", "MI53"))
+  df$sitePlot       <- NULL
   df$siteOutliers   <- NULL
   df$removeOutliers <- NULL
   g                 <- getCov(df)
@@ -234,8 +232,13 @@ This is done by simply setting the 5th last input to TRUE then the .mat file wil
   g           <- getCov(df)
 @
 
+In the case that the user has already generated an output by the function \texttt{getCov()}, it is possible to also create the mat file in the following way.
 
 
+<<chunkCovMat2,include=TRUE,eval=FALSE>>=
+  library(rmatio)
+  write.mat(g$cov,filename = "covariance1.mat")
+@
 \item Univariate model summaries
 %%%%Parsing results
 <<chunkListModResult,include=TRUE,eval=TRUE>>=
@@ -258,10 +261,10 @@ The following output is a call to the MVN package that produces mutivariate anal
 The specific call the the MVN package is,
 
 <<chunkMVNcall,include=TRUE,eval=FALSE>>=
- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, 
-     tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", 
-     univariateTest = "SW",  univariatePlot = "none", multivariatePlot ="none", 
-     multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
+ mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE,
+     tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none",
+     univariateTest = "SW",  univariatePlot = "none", multivariatePlot ="none",
+     multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded",
      showOutliers = FALSE, showNewData = FALSE)
 
 @
@@ -278,14 +281,14 @@ See \cite{MVN} for details on the MVN package.
 
   \subsection{Functions for getting a vector of sites}
     \label{sec:3.2}
- \texttt{getCov()} takes site lists as input, the function \texttt{getSites()} produces a list of sites with available data for a specified time frame. The code below produces a list of 36 sites with the most weekly data between the years 1983-1986. 
+ \texttt{getCov()} takes site lists as input, the function \texttt{getSites()} produces a list of sites with available data for a specified time frame. The code below produces a list of 36 sites with the most weekly data between the years 1983-1986.
 
 <<getSites1,include=TRUE,eval=TRUE>>=
   result <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","")
   result$finalList
 @
 
-The 4th input specifies the minimum sample of weekly data required to be included in the produced list and the last input tells the function to only look at sites in the North Eastern region of the US. Other options for region "W","S","N", see Appendix A for the precise geographic split. 
+The 4th input specifies the minimum sample of weekly data required to be included in the produced list and the last input tells the function to only look at sites in the North Eastern region of the US. Other options for region "W","S","N", see Appendix A for the precise geographic split.
 
 <<getSites1region,include=TRUE,eval=TRUE>>=
   NSites <- getSites("01/01/83 00:00", "12/31/86 00:00",36,104,"SO4","N")
@@ -302,32 +305,31 @@ The function \texttt{maxDistSites()} prioritizes sites that are farther away fro
   \subsection{Lambert's W transformation on univariate data}
     \label{sec:3.3}
   For a number of sites the resdiuals produced by the deterministic model have skewed distributions with heavy tails. In particular, this is the case for many sites when the sample of data is taken over a period longer than 4 years. To deal with this issue we've incorporated functions from the LambertW package (see \cite{LambertW})in the function \texttt{lambertWtransform()} that will allow a user to transform the residuals produced by the deterministic univariate model. The LambertW package estimates the parameters that fit a LamberW distribution on the given univariate data. Then the underlying gaussian distribution implied by the LambertW distribution is extracted and is used for the multivariate analysis in the function \texttt{lambertWtransform()}. The \texttt{lambertWtransform()} function takes the following as input: a dataframe of residuals, and two binary inputs specifying whether to plot the multivariate qq plot and whether to produce the mat file containing the covariance matrix with the Lambert W transformed residuals. Details on the algorithms that perform the transformation can be found in \cite{LambertW2}.
-  
-<<lambert1,include=TRUE,eval=FALSE>>=
+
+<<lambert1,include=TRUE,eval=TRUE>>=
   data("dfRes50")
   loutput <- lambertWtransform(dfRes = dfRes50, plotMulti = FALSE, writeMat = FALSE)
   loutput$mvn$multivariateNormality
 @
 
  This function will produce a list of four elements that can be called using the following names:
-  <<lambert2,include=TRUE,eval=FALSE>>=
+  <<lambert2,include=TRUE,eval=TRUE>>=
   data("dfRes50")
-  dfRes50 <- dfRes50
   loutput <- lambertWtransform(dfRes = dfRes50, plotMulti = FALSE, writeMat = FALSE)
-  loutput$mvn
-  loutput$cov
-  loutput$newResiduals
-  loutput$univariateTest
+  loutput$mvn$multivariateNormality
+  loutput$cov[1:5,1:5]
+  loutput$newResiduals[1:5,1:5]
+  loutput$univariateTest[1:5,]
 @
- 
+
  \begin{enumerate}
    \item \texttt{loutput\$mvn} will show the results of applying the multivariate analysis by the MVN package
    \item \texttt{loutput\$cov} will output the covariance matrix produced by the transformed residuals
    \item \texttt{loutput\$newResiduals} will output the dataframe of Lambert W transformed         residuals
    \item \texttt{loutput\$univariateTest} will output the univariate tests produced by the MVN function for the   transformed residuals
  \end{enumerate}
-  
-<<chunckIndExample,include=TRUE,eval=FALSE>>=
+
+<<chunckIndExample,include=TRUE,eval=TRUE>>=
 #get list of sites
 maxd  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,200,"SO4",1)
 #create input dataframe
@@ -339,21 +341,14 @@ df$use36        <- FALSE
 df$comp         <- maxd$comp
 df$enddateStr   <- maxd$endDate
 df$writeMat     <- TRUE
-output          <- getCov(df)
-output$mvn$multivariateNormality
+g               <- getCov(df)
+g$mvn$multivariateNormality
 
-loutput <- lambertWtransform(output$residualData, TRUE,FALSE)
+loutput <- lambertWtransform(g$residualData, TRUE,FALSE)
 loutput$mvn$multivariateNormality
 @
 
-<<chunckExampleInd,include=TRUE,eval=FALSE>>=
-maxd1  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,200,"SO4",1)
-df <- defaultInput
-df$comp         <- maxd1$comp
-df$enddateStr   <- maxd1$endDate
-df$startdateStr <- maxd1$startDate
-df$siteAdd      <- list(maxd1$finalList)
-g               <- getCov(df)
+<<chunckExampleInd,include=TRUE,eval=TRUE>>=
 indp            <- independenceTest(g$residualData)
 indp$test
 @
@@ -397,20 +392,7 @@ Basically, this is just an affine model $ \beta_{1} + \beta_{2}t$ plus
   fix \eqref{simplemodel} as our model, we provide a more flexible model described in the next section.%also show figures for sites
 
   \subsection{The univariate model}
-  %%Confirm that we should not write about what we tries, just what worked
-  %%i.e. don't write about ARIMA model
-%
-%   Through a few experiments we saw that odd powers of trigonometric functions fit the data well but different sites fitted better with different powers of $\sin (\frac{2t\pi}{12})$. In which case we would have had to fit a non-linear regression, to avoid this we use the fact that $\cos^p(t)$ has the following identities:r$
-%   \begin{align}
-%     \cos^3(t) & = \frac{3}{4}\cos(t) + \frac{1}{4}\cos(3t) \\
-%     \cos^5(t) & = \frac{5}{8}\cos(t) + \frac{5}{16}\cos(3t) + \frac{1}{16}\cos(5t)
-%   \end{align}
-%
-% Then we can fit the data at each site using:
-%
-%   \[\mu(s_i,t) = \beta_{1} + \sum_{i=1}^{r}\beta_{i}t^i + \sum_{j=1}^{k}\beta_{j3}\cos\bigg(\frac{2\pi tj}{S}\bigg) \tag{5}\]
-%
-% We also added the flexibility of deciding the periodicity of the function, the user can now alter the input $S$ to change the period of the model.
+
 The general model that we provide is
 \[
 \log(y(t))\approx \sum_{i=0}^r \beta_{i}t^i + \sum_{j=1}^{k} \bigg[a_j \cos \bigg(\frac{2\pi jt}{S}\bigg) +  b_j \sin \bigg(\frac{2\pi jt}{S}\bigg)\bigg].
@@ -424,11 +406,11 @@ The simple model \eqref{simplemodel} is this one with $r=1$, $k=1$ and $S=12$.
 
 <<chunckExamplemax,include=TRUE,eval=FALSE>>=
 #sites with maximum distance data sets, get 50 sites
-maxd1  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,250,"SO4",1) 
-maxd2  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"SO4",1) 
-maxd3  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"NO3",1) 
-maxd4  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"Na",1)  
-maxd5  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"NH4",1) 
+maxd1  <- maxDistSites("01/01/86 00:00","12/31/94 00:00",50,250,"SO4",1)
+maxd2  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"SO4",1)
+maxd3  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"NO3",1)
+maxd4  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"Na",1)
+maxd5  <- maxDistSites("01/01/07 00:00","12/31/14 00:00",50,230,"NH4",1)
 @
 
 \section*{Acknowledgments} J. Lee was funded by the
@@ -442,7 +424,7 @@ Appendix A
 \end{center}
 
 \bibliographystyle{alpha}
-\bibliography{MESgenCov2}
+\bibliography{MESgenCov}
 
 \end{document}
 

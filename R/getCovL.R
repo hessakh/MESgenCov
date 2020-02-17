@@ -23,7 +23,7 @@ getCovL<- function(df){
   p=1 #for added functionality in the future
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV"); data("preDailyCSV")})
+    try({data("weeklyCSV");load("weeklyCSV.rda"); data("preDailyCSV"); load("preDailyCSV.rda")})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -95,6 +95,14 @@ getCovL<- function(df){
     if(is.null(seas)){seas = 12}
   }
   
+  #add default sites
+  if(use36 == T){
+    cat36 <- c("AL10","IL11","IL18","IL19","IL35","IL47","IL63","IN34",
+               "IN41","MA01","MA13","MD13","MI09","MI26","MI53",
+               "NC03","NC34","NC41","NJ99","NY08","NY10","NY20",
+               "NY52","NY65","OH17","OH49","OH71","PA15","PA29",
+               "PA42","TN00","TN11","VA13","VT01","WI28","WV18")#from Guttorp, Le 1992
+  }else{cat36 <- NULL}
   cati   <- union(cat36,siteAdd[[1]])
   obs    <- comp
   
@@ -118,15 +126,6 @@ getCovL<- function(df){
   
   preCSVf$amount    <- as.numeric(preCSVf$amount) #change data type of column
   preCSVf <- preCSVf[preCSVf$amount>-0.0001,]     #filter out -/ive values
-  
-  #add default sites
-  if(use36 == T){
-    cat36 <- c("AL10","IL11","IL18","IL19","IL35","IL47","IL63","IN34",
-               "IN41","MA01","MA13","MD13","MI09","MI26","MI53",
-               "NC03","NC34","NC41","NJ99","NY08","NY10","NY20",
-               "NY52","NY65","OH17","OH49","OH71","PA15","PA29",
-               "PA42","TN00","TN11","VA13","VT01","WI28","WV18")#from Guttorp, Le 1992
-  }else{cat36 <- NULL}
   
   #initialize
   

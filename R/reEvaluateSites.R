@@ -1,11 +1,8 @@
 #'@keywords internal
 #' analyzes data without outliers
-#' @param dfRes       dataframe, 
-#' @param plotMulti   
 
-#' @return             Returns a dataframe of LambertW transformed residuals
 reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
-                            y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite, outSites,cati,strtYrMo,endYrMo){
+                            y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite, outSites,cati,strtYrMo,endYrMo,diffYrm){
   df <- dfInp
   weeklyB      <- df$weeklyB
   startdateStr <- df$startdateStr
@@ -74,8 +71,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
       site <- site[site[,5 + obsi]>-0.0001,]
       site <- site[order(site$dateon),]
       preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
-      conCSV$siteID <- toupper(conCSV$siteID) #combine data
-      preCSV$siteID <- toupper(preCSV$siteID)
+
       
       #aaggregates weekly precipitation
       if (obs[obsi] == "ph"){bi = 1}else{bi = 0}
@@ -233,3 +229,4 @@ if(plotMulti){
 big_list <- list("mvn" = MVDw, "residualData" = dfRes, "cov" = covxx, "pred" = vpredl)
 return(big_list)
 }
+

@@ -16,5 +16,5 @@ Returns result of independence test and correlation matrix
 returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
 }
 \examples{
-independenceTest(dfRes50)
+independenceTest(data.frame(matrix(runif(500, min= -1, max =1), ncol=10)))
 }

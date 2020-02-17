@@ -7,9 +7,11 @@
 lambertWtransform(dfRes, plotMulti, writeMat)
 }
 \arguments{
-\item{dfRes}{dataframe, when to start analyzing data, format = "m/d/y H:M"}
+\item{dfRes}{dataframe,}
 
-\item{plotMulti}{Binary, when to stop analyzing data, format = "m/d/y H:M"}
+\item{plotMulti}{Binary,}
+
+\item{writeMat}{Binary,}
 }
 \value{
 Returns a dataframe of LambertW transformed residuals
@@ -18,5 +20,5 @@ Returns a dataframe of LambertW transformed residuals
 returns LambertW transformed residuals
 }
 \examples{
-lambertWtransform(dfRes = dfRes50,plotMulti = FALSE, writeMat = FALSE)
+lambertWtransform(data.frame(matrix(runif(n = 100), ncol = 5 )),plotMulti = FALSE, writeMat = FALSE)
 }

@@ -1,6 +1,7 @@
-#'@keywords internal
 #'This function takes a dataframe with weekly precipitation and concentration values,
 #'
+#'@keywords internal
+
 aggregateMonthly <-
 function (bi,site,siObs,obs,obsi,totT,strtYrMo,diffyrm1){#binary con or pH
   sitem <- data.frame(matrix(ncol=3, nrow=totT))

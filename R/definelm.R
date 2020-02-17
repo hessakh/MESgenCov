@@ -1,4 +1,5 @@
 #'@keywords internal
+#'@importFrom   stats lm
 definelm <- function(y1,t,df,r,k,seas) {
   p <-  1
   if(r == 1){

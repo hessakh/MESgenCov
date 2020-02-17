@@ -4,14 +4,16 @@
 \alias{weeklyConc}
 \title{gets weekly values and concentrations from daily precipitayion data}
 \usage{
-weeklyConc(binary, site, siObs, obs, obsi, startdate)
+weeklyConc(bi, site, siObs, obs, obsi, startdate)
 }
 \arguments{
-\item{binary}{Is pH being analyzed on the current loop? T/F (generated automatically in loop)}
+\item{bi}{Is pH being analyzed on the current loop? T/F (generated automatically in loop)}
 
 \item{site}{Data with compund/pH weekly values}
 
 \item{siObs}{Number of compunds analyzed}
+
+\item{obs}{Vectpr of comp}
 
 \item{obsi}{Index of current compund being analyzed}
 

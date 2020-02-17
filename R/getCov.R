@@ -1,8 +1,9 @@
 #'creates covariance matrix from normalized NADP monitor data
 #'gamma version with optional inputs
 #'@import   MVN
-#'@import   rmatio
-#'@import   EnvStats
+#'@importFrom rmatio write.mat
+#'@importFrom EnvStats rosnerTest
+#'@importFrom utils data
 #'@param df data frame of input
 
 #'@return   List of model summaries at each site, covariance matrix and plots if inputted as T
@@ -23,7 +24,7 @@ getCov <- function(df){
   p=1 #for added functionality in the future
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV"); data("preDailyCSV")})
+    try({utils::data("weeklyCSV",envir = environment()); utils::data("preDailyCSV",envir = environment())})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -64,13 +65,13 @@ getCov <- function(df){
   ##### store data
   
   conCSV <- weeklyCSV
-  preCSV <- na.omit(preDailyCSV)
+  preCSV <- stats::na.omit(preDailyCSV)
   conCSV$siteID <- toupper(conCSV$siteID) #combine data
   preCSV$siteID <- toupper(preCSV$siteID)
   
   #filter out unnecessary columns
   conCSVf  <- conCSV[,-6:-31]
-  conCSVf  <- na.omit(conCSVf)
+  conCSVf  <- stats::na.omit(conCSVf)
   preCSVf  <- preCSV[,-1]
   
   
@@ -152,10 +153,9 @@ getCov <- function(df){
   obsi <- 1
   siObs<- length(obs)
   oc   <- 1
-  
-  #par(mfrow=c(2,2))
+
   if(plotAll){
-    par(mfrow = c(2,2),
+    graphics::par(mfrow = c(2,2),
         oma = c(0,0,0,0) + 0.1,
         mar = c(0,0,0,0) + 0.1)
   }
@@ -193,7 +193,7 @@ getCov <- function(df){
       #aaggregates weekly precipitation
       if (obs[obsi] == "ph"){bi = 1}else{bi = 0}
       site <- appendPre(site,preCSVk,obs,obsi,siObs,bi)
-      site <- na.omit(site)
+      site <- stats::na.omit(site)
       
       #aggregate precipitation data monthly and get concentration values
       if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo,diffYrm)
@@ -217,7 +217,7 @@ getCov <- function(df){
       p <- 1
       #deterministic univariate model for one site
       cn <- colnames(sitem)
-      minsite3 <- min(na.omit(sitem[,3]))
+      minsite3 <- min(stats::na.omit(sitem[,3]))
       if(!weeklyB || minsite3 >= 0.0001){
         minsite3 <- 0
         nonneg   <- 0
@@ -228,7 +228,7 @@ getCov <- function(df){
       y0[[s]]   <- sitem[,3]
       y2[[s]]   <- sitem[,4]
       t2        <- sitem$t
-      sitem     <- na.omit(sitem)
+      sitem     <- stats::na.omit(sitem)
       colnames(sitem) <- c(cn, "log")
       y1 <- sitem[,4]
       t <- sitem$t
@@ -242,7 +242,7 @@ getCov <- function(df){
       df  <- data.frame(cbind(y1,cyclicTrend))
       df  <- data.frame(cbind(df,t))
       mod <- definelm(y1,t,df,r,kk,seas)
-      er  <- residuals(mod)
+      er  <- stats::residuals(mod)
       summary(mod)
       mods[[s]] <- summary(mod)
       to[[s]] <- t
@@ -276,8 +276,8 @@ getCov <- function(df){
       #store predicted value vector
       if(length(to[[s]]) < totT){
         new   <- data.frame(1:totT)
-        vpred <- predict(mod,newdata = new)
-      }else{vpred <- predict(mod)}
+        vpred <- stats::predict(mod,newdata = new)
+      }else{vpred <- stats::predict(mod)}
 
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
@@ -288,7 +288,7 @@ getCov <- function(df){
           set.seed(i+s)
           e0 <- rnorm(1,0,se1)
           y1 <- c(y1[1:kl-1],cy1+e0,ry1)
-          y2i <- c(y2i[1:kl-1],NA,ry2i) #missing = 0 rn, rnorm(1,0,se1)
+          y2i <- c(y2i[1:kl-1],NA,ry2i) #missing = 0 rn, stats::rnorm(1,0,se1)
           er <- c(er[1:kl-1],e0,er[kl:length(er)]) # change to stochastic #change to 0
           t  <- c(t[1:kl-1],i-fi,t[kl:length(t)])
           fi <- fi + 1
@@ -308,13 +308,13 @@ getCov <- function(df){
       if(plotAll == T){
         if(s%%4 == 1 && s!=1){
           dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-          par(mfrow = c(2,2))}
-        par(mar=c(4,4,2,2))
+          graphics::par(mfrow = c(2,2))}
+        graphics::par(mar=c(4,4,2,2))
         tc <- 1:length(vpred)
-        plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
-        par(new=TRUE)
-        lines(x = tc, y = vpred, col ="blue")
-        #plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
+        graphics::plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::par(new=TRUE)
+        graphics::lines(x = tc, y = vpred, col ="blue")
+        #graphics::plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
       }
     }
     si <- si + 1
@@ -349,13 +349,13 @@ getCov <- function(df){
   options(warn=0)
   
   #produce multivariate analysis
-  par(mar=c(1,1,1,1))
+  graphics::par(mar=c(1,1,1,1))
   MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
   MVDw
   if(plotMulti){
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
-    par(mfrow=c(1,2))
+    graphics::par(mfrow=c(1,2))
     MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }
@@ -411,13 +411,13 @@ getCov <- function(df){
   #plots
   if(plotB == T){
     dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-    par(mar=c(4,4,2,2))
+    graphics::par(mar=c(4,4,2,2))
     i = match(sitePlot[1], cati)
     if(!is.na(i)){
       tc <- 1:totT
-      plot(t2,y2[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
-      par(new=TRUE)
-      lines(x = tc, y = vpredl[[i]], col ="red")
+      graphics::plot(t2,y2[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
+      graphics::par(new=TRUE)
+      graphics::lines(x = tc, y = vpredl[[i]], col ="red")
     }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
   }
   if(writeMat){

@@ -1,8 +1,9 @@
 #'creates covariance matrix from normalized NADP monitor data
 #'gamma version with optional inputs
 #'@import   MVN
-#'@import   rmatio
-#'@import   EnvStats
+#'@importFrom   rmatio write.mat
+#'@importFrom   EnvStats rosnerTest
+#'@importFrom   utils data
 #'@param df data frame of input
 
 #'@return   List of model summaries at each site, covariance matrix and plots if inputted as T
@@ -23,7 +24,7 @@ getCovL<- function(df){
   p=1 #for added functionality in the future
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV");load("weeklyCSV.rda"); data("preDailyCSV"); load("preDailyCSV.rda")})
+    try({data("weeklyCSV",envir = environment()); data("preDailyCSV",envir = environment())})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -150,9 +151,9 @@ getCovL<- function(df){
   siObs<- length(obs)
   oc   <- 1
   
-  #par(mfrow=c(2,2))
+  #graphics::par(mfrow=c(2,2))
   if(plotAll){
-    par(mfrow = c(2,2),
+    graphics::par(mfrow = c(2,2),
         oma = c(0,0,0,0) + 0.1,
         mar = c(0,0,0,0) + 0.1)
   }
@@ -274,13 +275,13 @@ getCovL<- function(df){
       #store predicted value vector
       if(length(to[[s]]) < totT){
         new   <- data.frame(1:totT)
-        vpred <- predict(mod,newdata = new)
+        vpred <- stats::predict(mod,newdata = new)
       }else{vpred <- predict(mod)}
       
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
           cy1 <- vpred[i-fi]
-          #cy2 + rnorm(1,0,se1) #for maintaining variance
+          #cy2 + stats::rnorm(1,0,se1) #for maintaining variance
           ry1 <- y1[kl:length(y1)]
           ry2i <- y2i[kl:length(y2i)]
           set.seed(i+s)
@@ -306,13 +307,13 @@ getCovL<- function(df){
       if(plotAll == T){
         if(s%%4 == 1 && s!=1){
           dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-          par(mfrow = c(2,2))}
-        par(mar=c(4,4,2,2))
+          graphics::par(mfrow = c(2,2))}
+        graphics::par(mar=c(4,4,2,2))
         tc <- 1:length(vpred)
-        plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
-        par(new=TRUE)
-        lines(x = tc, y = vpred, col ="blue")
-        #plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
+        graphics::plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::par(new=TRUE)
+        graphics::lines(x = tc, y = vpred, col ="blue")
+        #graphics::plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
       }
     }
     si <- si + 1
@@ -350,13 +351,13 @@ getCovL<- function(df){
   options(warn=0)
   
   #produce multivariate analysis
-  par(mar=c(1,1,1,1))
+  graphics::par(mar=c(1,1,1,1))
   MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
   MVDw
   if(plotMulti){
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
-    par(mfrow=c(1,2))
+    graphics::par(mfrow=c(1,2))
     MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }
@@ -395,7 +396,7 @@ getCovL<- function(df){
         outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
         if(length(outlierDatesbySite) >= 2){
           updatedPars        <- reEvaluateSites(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
-                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
+                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo,diffYrm)
           #update all outputs here
           dfRes   <- updatedPars$residualData
           covxx   <- updatedPars$cov
@@ -412,13 +413,13 @@ getCovL<- function(df){
   #plots
   if(plotB == T){
     dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-    par(mar=c(4,4,2,2))
+    graphics::par(mar=c(4,4,2,2))
     i = match(sitePlot[1], cati)
     if(!is.na(i)){
       tc <- 1:totT
-      plot(t2,y2[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
-      par(new=TRUE)
-      lines(x = tc, y = vpredl[[i]], col ="red")
+      graphics::plot(t2,y2[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
+      graphics::par(new=TRUE)
+      graphics::lines(x = tc, y = vpredl[[i]], col ="red")
     }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
   }
   if(writeMat){

@@ -1,4 +1,5 @@
 #'@keywords internal
+
 #'This takes a fitted Lambert distribution, residuals and a type of LambertW as input
 #' and outputs new residuals with missing values sampled from the LambertW fitted distribution
 # input: fitgmm, residual data

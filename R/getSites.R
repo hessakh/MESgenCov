@@ -1,5 +1,7 @@
 #' returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
 #' @import lubridate
+#' @import   stats
+#' @importFrom utils data
 #' @param startdateStr String, when to start analyzing data, format = "m/d/y H:M"
 #' @param enddateStr   String, when to stop analyzing data, format = "m/d/y H:M"
 #' @param maxn         Maximum number of sites required
@@ -14,16 +16,16 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
 #tic()
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV"); data("preDailyCSV");load("weeklyCSV.rda"); load("preDailyCSV.rda")})
+    try({utils::data("weeklyCSV"); utils::data("preDailyCSV");load("weeklyCSV.rda"); load("preDailyCSV.rda")})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
     message("Missing files, running code that downloads necessary files from the NADP site")
-    getDataOffSite()
+    #getDataOffSite()
   }
   #get data if it's not in the working directory
   if(!exists("NADPgeo")){
-    try({data("NADPgeo");load("NADPgeo.rda")})
+    try({utils::data("NADPgeo",envir = environment());load("NADPgeo.rda",envir = environment())})
   }
   #check, still doesn't exist?
   if(!exists("NADPgeo")){
@@ -31,13 +33,13 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
   }
 
   conCSV <- weeklyCSV
-  preCSV <- na.omit(preDailyCSV)
+  preCSV <- stats::na.omit(preDailyCSV)
   geoCSV <- NADPgeo
   colnames(geoCSV) <- c("siteID","city","lat","long")
 
   #filter out unnecessary columns
   conCSVf  <- conCSV[,-6:-31]
-  conCSVf  <- na.omit(conCSVf)
+  conCSVf  <- stats::na.omit(conCSVf)
   preCSVf  <- preCSV[,-1]
   preCSVf  <- preCSVf[preCSVf$amount>-0.0001,]   #filter out -/ive values
 

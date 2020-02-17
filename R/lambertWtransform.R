@@ -1,10 +1,10 @@
 
 #' returns LambertW transformed residuals
 #' @import LambertW
-#' @import MVN
+#' @importFrom MVN mvn
 #' @param dfRes       dataframe, 
 #' @param plotMulti   Binary, 
-#' @param writeMat   Binary, 
+#' @param writeMat    Binary, 
 
 #' @return             Returns a dataframe of LambertW transformed residuals
 #' @export

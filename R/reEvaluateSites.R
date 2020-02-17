@@ -1,4 +1,6 @@
-#'@keywords internal
+#' @keywords internal
+
+
 #' analyzes data without outliers
 
 reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
@@ -33,7 +35,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
 
   if(plotAll){
     dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-    par(mfrow = c(2,2),
+    graphics::par(mfrow = c(2,2),
         oma = c(0,0,0,0) + 0.1,
         mar = c(0,0,0,0) + 0.1)
   }
@@ -184,12 +186,12 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
       if(plotAll == T){
         if(ss%%4 == 1 && ss!=1){
           dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-          par(mfrow = c(2,2))}
-        par(mar=c(4,4,2,2))
+          graphics::par(mfrow = c(2,2))}
+        graphics::par(mar=c(4,4,2,2))
         tc <- 1:totT
-        plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
-        par(new=TRUE)
-        lines(x = tc, y = vpred, col ="blue")
+        graphics::plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::par(new=TRUE)
+        graphics::lines(x = tc, y = vpred, col ="blue")
       }
     }
     si <- si + 1
@@ -216,13 +218,13 @@ for( i in 2:(length(cati)*length(obs))){
   covxx <- data.frame(cov(dfRes[,-1]))
   options(warn=0)
 
-  par(mar=c(1,1,1,1))
+  graphics::par(mar=c(1,1,1,1))
   MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
   MVDw
 if(plotMulti){
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
-    par(mfrow=c(1,2))
+    graphics::par(mfrow=c(1,2))
     MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }

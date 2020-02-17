@@ -2,6 +2,8 @@
 
 #' returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
 #' @import lubridate
+#' @import   stats
+#' @importFrom utils data
 #' @param startdateStr String, when to start analyzing data, format = "m/d/y H:M"
 #' @param enddateStr   String, when to stop analyzing data, format = "m/d/y H:M"
 #' @param maxn         Number of sites required
@@ -16,7 +18,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   #tic()
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV"); data("preDailyCSV")})
+    try({utils::data("weeklyCSV",envir = environment()); utils::data("preDailyCSV",envir = environment())})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
@@ -26,7 +28,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
 
   #get data if it's not in the working directory
   if(!exists("NADPgeo")){
-    try({data("NADPgeo");load("NADPgeo.rda")})
+    try({utils::data("NADPgeo",envir = environment())})
   }
   #check, still doesn't exist?
   if(!exists("NADPgeo")){
@@ -34,14 +36,14 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   }
 
   conCSV <- weeklyCSV
-  preCSV <- na.omit(preDailyCSV)
+  preCSV <- stats::na.omit(preDailyCSV)
   geoCSV <- NADPgeo
   colnames(geoCSV) <- c("siteID","city","lat","long")
   #toc() #0.914 sec if data is already loaded if not 26 sec
   #tic()
   #filter out unnecessary columns
   conCSVf  <- conCSV[,-6:-31]
-  conCSVf  <- na.omit(conCSVf)
+  conCSVf  <- stats::na.omit(conCSVf)
   preCSVf  <- preCSV[,-1]
   preCSVf  <- preCSVf[preCSVf$amount>-0.0001,]   #filter out -/ive values
 
@@ -107,9 +109,9 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   colnames(siteDataCount) <- c("siteID","count")
   siteDataCount <- merge(siteDataCount, geoCSV, by="siteID")
   siteDataCount <- siteDataCount[order(siteDataCount$count,decreasing = TRUE),]
-  finalList <- siteDataCount[startingSite,]
-  remainSDC <- siteDataCount[-startingSite,]
-  trueMax <- min(dim(siteDataCount)[1],maxn)
+  finalList     <- siteDataCount[startingSite,]
+  remainSDC     <- siteDataCount[-startingSite,]
+  trueMax       <- min(dim(siteDataCount)[1],maxn)
   #print(dim(siteDataCount)[1])
   if(trueMax < maxn){#toc()
     stop(paste("Number of sites with data for inputted dates is less than specified max, number of sites found",

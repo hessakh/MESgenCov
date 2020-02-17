@@ -16,7 +16,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   #tic()
   #get data if it's not in the working directory
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV"); data("preDailyCSV");load("weeklyCSV"); load("preDailyCSV")})
+    try({data("weeklyCSV"); data("preDailyCSV")})
   }
   #check, still doesn't exist?
   if(!exists("weeklyCSV") || !exists("preDailyCSV")){

@@ -1,12 +1,13 @@
-#'@keywords internal
 #'gets weekly values and concentrations from daily precipitayion data
+#'@keywords internal
 #'
-#'@param binary Is pH being analyzed on the current loop? T/F (generated automatically in loop)
+#'@param bi Is pH being analyzed on the current loop? T/F (generated automatically in loop)
 #'@param site   Data with compund/pH weekly values
 #'@param siObs  Number of compunds analyzed
-#'@param obs
+#'@param obs    Vectpr of comp
 #'@param obsi   Index of current compund being analyzed
 #'@param startdate Startdate of analysis
+#'
 #'@return sitew data that has weekly concentrations of compound, in the case of pH it gives exactly the weekly value plus a column with weekly precipitation values
 
 weeklyConc <-

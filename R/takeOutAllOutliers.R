@@ -1,5 +1,6 @@
-#'@keywords internal
 #' returns LambertW transformed residuals
+#'@keywords internal
+
 #' @param dfRes       dataframe, 
 #' @param plotMulti   
 

@@ -1,9 +1,7 @@
+#' analyzes data without outliers
 #' @keywords internal
 
-
-#' analyzes data without outliers
-
-reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
+reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
                             y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite, outSites,cati,strtYrMo,endYrMo,diffYrm){
   df <- dfInp
   weeklyB      <- df$weeklyB
@@ -34,7 +32,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
   oc   <- 1
 
   if(plotAll){
-    dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+    grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
     graphics::par(mfrow = c(2,2),
         oma = c(0,0,0,0) + 0.1,
         mar = c(0,0,0,0) + 0.1)
@@ -45,45 +43,10 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
     s  <- match(outSites[s],cati)
     si <- s
     s  <- s + (obsi-1)*length(cati)
-    #change obs
-    #if (s%%(length(cati)) == 1 && s != 1){obsi = obsi + 1; si = 1}
-    
-    #filter site (weekly concentration data)
-    
-    conCSVk <- conCSVf[conCSVf$siteID == toString(cati[si]),]
-    preCSVk <- preCSVf[preCSVf$siteID == toString(cati[si]),]
-    
-    if(nrow(conCSVk)==0 || nrow(preCSVk)==0){
-      #store parameters
-      tl[[s]]     <- NULL
-      to[[s]]     <- NULL
-      e[[s]]      <- NULL
-      y[[s]]      <- NULL
-      y0[[s]]     <- NULL
-      y2[[s]]     <- NULL
-      co[[s]]     <- NULL
-      inter[s]    <- NULL
-      mods[[s]]   <- NULL
-      vpredl[[s]] <- NULL
-      message(paste0("Missing data for ", cati[si]," ",obs[obsi],
-                     " check if site has data for inputted dates in data file weeklyCSV, preDailyCSV"))
-    }else{
-      #filter out missing data, -/ive values, and order dataframes by date
-      site <- conCSVk
-      site <- site[site[,5 + obsi]>-0.0001,]
-      site <- site[order(site$dateon),]
-      preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
 
-      
-      #aaggregates weekly precipitation
-      if (obs[obsi] == "ph"){bi = 1}else{bi = 0}
-      site <- appendPre(site,preCSVk,obs,obsi,siObs,bi)
-      site <- na.omit(site)
-      
-      #aggregate precipitation data monthly and get concentration values
-      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo,diffYrm)
-      }else{       sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
-      
+    sitem <- cbind(t2[[s]], 0, y0[[s]],y2[[s]])
+    colnames(sitem) <- c("t","filler","Conc","log")
+    sitem <- data.frame(sitem)
       if (length(outlierDatesbySite) != 0){
         if(outlierDatesbySite[oc] == cati[si]){
           for(i in (oc+1):length(outlierDatesbySite)){
@@ -101,23 +64,10 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
       }
       p <- 1
       #deterministic univariate model for one site
-      cn <- colnames(sitem)
-      minsite3 <- min(na.omit(sitem[,3]))
-      if(!weeklyB || minsite3 >= 0.0001){
-        minsite3 <- 0
-        nonneg   <- 0
-      }else if(minsite3 == 0){
-        nonneg = 0.00001
-      }
-      sitem[,4] <- log(sitem[,3] + abs(minsite3) + nonneg)
-      y0[[s]]   <- sitem[,3]
-      y2[[s]]   <- sitem[,4]
-      t2        <- sitem$t
-      sitem     <- na.omit(sitem)
-      colnames(sitem) <- c(cn, "log")
+      t2 <- sitem$t
+      sitem     <- stats::na.omit(sitem)
       y1 <- sitem[,4]
       t <- sitem$t
-      tsitem <- sitem$t
       cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
         (I(cos(t*(2*pi/seas)*2)^p) + I(sin(t*(2*pi/seas)*2)^p))*kv[2] +
         (I(cos(t*(2*pi/seas)*3)^p) + I(sin(t*(2*pi/seas)*3)^p))*kv[3] +
@@ -193,7 +143,7 @@ reEvaluateSites <- function(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT
         graphics::par(new=TRUE)
         graphics::lines(x = tc, y = vpred, col ="blue")
       }
-    }
+    
     si <- si + 1
   }
   ##################

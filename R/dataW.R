@@ -4,7 +4,7 @@
 #'
 #' @docType data
 #'
-#' @usage data(weeklyCSV)
+#' @usage data(weeklyConc)
 #'
 #' @keywords datasets
 #'
@@ -15,8 +15,8 @@
 #' @source \href{http://nadp.slh.wisc.edu/data/NTN/ntnAllsites.aspx}{NADP/NTN}
 #'
 #' @examples
-#' data(weeklyCSV)
-#'  SO4   <- attr(weeklyCSV, "SO4")
-#' siteID <- weeklyCSV$siteID
+#' data(weeklyConc)
+#'  SO4   <- attr(weeklyConc, "SO4")
+#' siteID <- weeklyConc$siteID
 
-"weeklyCSV"
+"weeklyConc"

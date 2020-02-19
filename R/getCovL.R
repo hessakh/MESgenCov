@@ -23,11 +23,11 @@
 getCovL<- function(df){
   p=1 #for added functionality in the future
   #get data if it's not in the working directory
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({data("weeklyCSV",envir = environment()); data("preDailyCSV",envir = environment())})
+  if(!exists("weeklyConc") || !exists("preDaily")){
+    try({data("weeklyConc",envir = environment()); data("preDaily",envir = environment())})
   }
   #check, still doesn't exist?
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
+  if(!exists("weeklyConc") || !exists("preDaily")){
     stop("Missing files, running code that downloads necessary files from the NADP site")
   }
   #check for multiple pollutants
@@ -64,13 +64,13 @@ getCovL<- function(df){
   
   ##### store data
   
-  conCSV <- weeklyCSV
-  preCSV <- na.omit(preDailyCSV)
+  conCSV <- weeklyConc
+  preCSV <- na.omit(preDaily)
   
   #filter out unnecessary columns
-  conCSVf  <- conCSV[,-6:-31]
-  conCSVf  <- na.omit(conCSVf)
-  preCSVf  <- preCSV[,-1]
+  conCSVf  <- conCSV[,-5:-14]
+  conCSVf  <- stats::na.omit(conCSVf)
+  preCSVf  <- preCSV
   
   
   startdate  <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
@@ -111,7 +111,7 @@ getCovL<- function(df){
   for (i in 1:length(obs)){
     obsiCSV           <- match(obs[i],colnames(conCSV))
     cn                <- colnames(conCSVf)
-    conCSVf[,5+i]     <- conCSV[,obsiCSV] #
+    conCSVf[,4+i]     <- conCSV[,obsiCSV] #
     colnames(conCSVf) <- c(cn, obs[i])
   }
   
@@ -179,11 +179,11 @@ getCovL<- function(df){
       mods[[s]]   <- NA
       vpredl[[s]] <- NA
       message(paste0("Missing data for ", cati[si]," ",obs[obsi],
-                     " check if site has data for inputted dates in data file weeklyCSV, preDailyCSV"))
+                     " check if site has data for inputted dates in data file weeklyConc, preDaily"))
     }else{
       #filter out missing data, -/ive values, and order dataframes by date
       site <- conCSVk
-      site <- site[site[,5 + obsi]>-0.0001,]
+      site <- site[site[,4 + obsi]>-0.0001,]
       site <- site[order(site$dateon),]
       preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
       conCSV$siteID <- toupper(conCSV$siteID) #combine data

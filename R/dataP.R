@@ -4,7 +4,7 @@
 #'
 #' @docType data
 #'
-#' @usage data(preDailyCSV)
+#' @usage data(preDaily)
 #'
 #' @format An object of class \code{"cross"}; see \code{\link[qtl]{read.cross}}.
 #'
@@ -17,8 +17,8 @@
 # @source \href{http://nadp.slh.wisc.edu/data/NTN/ntnAllsites.aspx}{NADP/NTN}
 #'
 #' @examples
-#' data(preDailyCSV)
-#'  amount   <- attr(preDailyCSV, "amount")
-#' siteID <- preDailyCSV$siteID
+#' data(preDaily)
+#'  amount   <- attr(preDaily, "amount")
+#' siteID <- preDaily$siteID
 
-"preDailyCSV"
+"preDaily"

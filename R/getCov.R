@@ -21,13 +21,12 @@
 
 
 getCov <- function(df){
-  p=1 #for added functionality in the future
   #get data if it's not in the working directory
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({utils::data("weeklyCSV",envir = environment()); utils::data("preDailyCSV",envir = environment())})
+  if(!exists("weeklyConc") || !exists("preDaily")){
+    try({utils::data("weeklyConc",envir = environment()); utils::data("preDaily",envir = environment())})
   }
   #check, still doesn't exist?
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
+  if(!exists("weeklyConc") || !exists("preDaily")){
     stop("Missing files, running code that downloads necessary files from the NADP site")
   }
   #check for multiple pollutants
@@ -64,26 +63,22 @@ getCov <- function(df){
   
   ##### store data
   
-  conCSV <- weeklyCSV
-  preCSV <- stats::na.omit(preDailyCSV)
+  conCSV <- weeklyConc
+  preCSV <- stats::na.omit(preDaily)
   conCSV$siteID <- toupper(conCSV$siteID) #combine data
   preCSV$siteID <- toupper(preCSV$siteID)
   
   #filter out unnecessary columns
-  conCSVf  <- conCSV[,-6:-31]
+  conCSVf  <- conCSV[,-5:-14]
   conCSVf  <- stats::na.omit(conCSVf)
-  preCSVf  <- preCSV[,-1]
+  preCSVf  <- preCSV
   
   
   startdate  <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
   enddate    <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
   strtYrMo   <- format(startdate,"%Y%m")
   endYrMo    <- format(enddate,  "%Y%m")
-  strtYrMon  <- as.numeric(strtYrMo)
-  endYrMon   <- as.numeric(endYrMo)
-  yrdiff     <- (floor(endYrMon/100)- floor(strtYrMon/100))
-  mdiff      <- (endYrMon - floor(endYrMon/100)*100) - ((strtYrMon) - floor(strtYrMon/100)*100)
-  diffYrm    <- 12*yrdiff + mdiff + 1
+  diffYrm      <- mondf(startdate,enddate)+1
   nonneg <- 0
   if(weeklyB){
     totT <- as.integer(difftime(enddate,startdate,units="weeks"))
@@ -113,7 +108,7 @@ getCov <- function(df){
   for (i in 1:length(obs)){
     obsiCSV           <- match(obs[i],colnames(conCSV))
     cn                <- colnames(conCSVf)
-    conCSVf[,5+i]     <- conCSV[,obsiCSV] #
+    conCSVf[,4+i]     <- conCSV[,obsiCSV] #
     colnames(conCSVf) <- c(cn, obs[i])
   }
   
@@ -135,9 +130,9 @@ getCov <- function(df){
   
   rv    <- integer(5); if(r != 0){rv[1:r] <- rep(1L,r)}
   kv    <- integer(5); if(k != 0){kv[1:k] <- rep(1L,k)}
-  kk <- k
+  kk    <- k
   
-  tl   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
+  t2   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp before na.omit
   to   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
   y0   <- vector(mode="list", length=(length(cati)*length(obs))) #monthly/weekly concentraition values
   y    <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line 	omitted NA values
@@ -169,7 +164,7 @@ getCov <- function(df){
     
     if(nrow(conCSVk)==0 || nrow(preCSVk)==0){
       #store parameters
-      tl[[s]]     <- NA
+      t2[[s]]     <- NA
       to[[s]]     <- NA
       e[[s]]      <- NA
       e2[[s]]     <- NA
@@ -181,11 +176,11 @@ getCov <- function(df){
       mods[[s]]   <- NA
       vpredl[[s]] <- NA
       message(paste0("Missing data for ", cati[si]," ",obs[obsi],
-                     " check if site has data for inputted dates in data file weeklyCSV, preDailyCSV"))
+                     " check if site has data for inputted dates in data file weeklyConc, preDaily"))
     }else{
       #filter out missing data, -/ive values, and order dataframes by date
       site <- conCSVk
-      site <- site[site[,5 + obsi]>-0.0001,]
+      site <- site[site[,4 + obsi]>-0.0001,]
       site <- site[order(site$dateon),]
       preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
 
@@ -196,8 +191,8 @@ getCov <- function(df){
       site <- stats::na.omit(site)
       
       #aggregate precipitation data monthly and get concentration values
-      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo,diffYrm)
-      }else{       sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
+      if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
+      }else{       sitem <- weeklyConcT(bi,site,siObs,obs,obsi,startdate)}
       
       if (length(outlierDatesbySite) != 0){
         if(outlierDatesbySite[oc] == cati[si]){
@@ -227,12 +222,11 @@ getCov <- function(df){
       sitem[,4] <- log(sitem[,3] + abs(minsite3) + nonneg)
       y0[[s]]   <- sitem[,3]
       y2[[s]]   <- sitem[,4]
-      t2        <- sitem$t
+      t2[[s]]        <- sitem$t #same as t for monthly different for weekly
       sitem     <- stats::na.omit(sitem)
       colnames(sitem) <- c(cn, "log")
       y1 <- sitem[,4]
       t <- sitem$t
-      tsitem <- sitem$t
       cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
                      (I(cos(t*(2*pi/seas)*2)^p) + I(sin(t*(2*pi/seas)*2)^p))*kv[2] +
                      (I(cos(t*(2*pi/seas)*3)^p) + I(sin(t*(2*pi/seas)*3)^p))*kv[3] +
@@ -245,7 +239,7 @@ getCov <- function(df){
       er  <- stats::residuals(mod)
       summary(mod)
       mods[[s]] <- summary(mod)
-      to[[s]] <- t
+      to[[s]]  <- t
       tc       <- data.frame(1:totT)
       currResi <- data.frame(cbind(t,er))
       colnames(currResi) <- c("t","error")
@@ -297,7 +291,6 @@ getCov <- function(df){
       if(length(t)>totT){t<-t[1:totT];y2i<-y2i[1:totT]; y1 <- y1[1:totT];er<-er[1:totT]}
       
       #store parameters
-      tl[[s]]    <- t
       e[[s]]     <- unname(er)
       y[[s]]     <- y1
       y2[[s]]    <- y2i
@@ -350,13 +343,13 @@ getCov <- function(df){
   
   #produce multivariate analysis
   graphics::par(mar=c(1,1,1,1))
-  MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
+  MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.1, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
   MVDw
   if(plotMulti){
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
     graphics::par(mfrow=c(1,2))
-    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
+    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.1, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }
   rosnerT   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
@@ -393,8 +386,8 @@ getCov <- function(df){
         outlierDatesbySite <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$outBySite
         outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
         if(length(outlierDatesbySite) >= 2){
-          updatedPars        <- reEvaluateSites(dfInp, preCSVf, conCSVf,tl,to,startdate,enddate,totT,
-                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo,diffYrm)
+          updatedPars        <- reEvaluateSites(dfInp, t2,to,startdate,enddate,totT,
+                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo,totT)
           #update all outputs here
           dfRes   <- updatedPars$residualData
           covxx   <- updatedPars$cov
@@ -428,4 +421,3 @@ getCov <- function(df){
                   "rosnerTest" = rosnerT, "pred" = vpredl, "monthlyRaw" = sitem,"weeklyRaw" = site, "nOutliers"= noutliers)
   return(my_list)
 }
-

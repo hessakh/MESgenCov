@@ -63,16 +63,14 @@ getCov <- function(df){
   
   ##### store data
   
-  conCSV <- weeklyConc
-  preCSV <- stats::na.omit(preDaily)
-  conCSV$siteID <- toupper(conCSV$siteID) #combine data
-  preCSV$siteID <- toupper(preCSV$siteID)
+  conCSV <- MESgenCov::weeklyConc
+  preCSVf <- stats::na.omit(MESgenCov::preDaily)
+  conCSV$siteID  <- toupper(conCSV$siteID) #combine data
+  preCSVf$siteID <- toupper(preCSVf$siteID)
   
   #filter out unnecessary columns
   conCSVf  <- conCSV[,-5:-14]
   conCSVf  <- stats::na.omit(conCSVf)
-  preCSVf  <- preCSV
-  
   
   startdate  <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
   enddate    <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
@@ -111,6 +109,7 @@ getCov <- function(df){
     conCSVf[,4+i]     <- conCSV[,obsiCSV] #
     colnames(conCSVf) <- c(cn, obs[i])
   }
+  rm(conCSV)
   
   #filter by date
   conCSVf   <- conCSVf[conCSVf$yrmonth>=strtYrMo,]
@@ -282,7 +281,7 @@ getCov <- function(df){
       #plot all sites if indicated by user
       if(plotAll == T){
         if(s%%4 == 1 && s!=1){
-          dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+          grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:length(vpred)
@@ -328,9 +327,12 @@ getCov <- function(df){
   univariateTest <- MVDw$univariateNormality
   MVDw
   if(plotMulti){
-    dev.new(width = 8, height = 5, noRStudioGD = TRUE)
-    graphics::par(mfrow=c(1,2))
-    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
+    grDevices::dev.new(width = 4, height = 5, noRStudioGD = TRUE)
+    #graphics::par(mfrow=c(1,2))
+    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25,
+                alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW", 
+                univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "none", 
+                bc = FALSE, bcType = "rounded", showOutliers = FALSE, showNewData = FALSE)
     MVDw
   }
   rosnerT   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
@@ -371,6 +373,7 @@ getCov <- function(df){
                                                 y0,ylog,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
           #update all outputs here
           dfRes   <- updatedPars$residualData
+          dfRes2  <- updatedPars$residualDataNA
           covxx   <- updatedPars$cov
           MVDw    <- updatedPars$mvn
           vpredl  <- updatedPars$pred
@@ -387,7 +390,7 @@ getCov <- function(df){
   if(plotB == T){
     tc <- 1:totT
     for (g in 1:length(sitePlot[[1]])){
-      dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+      grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
       graphics::par(mar=c(4,4,2,2))
       i = match(sitePlot[[1]][g], cati)
       if(!is.na(i)){

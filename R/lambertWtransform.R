@@ -91,9 +91,9 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
   
   #produce univatiate tests for transformed data
   if(plotMulti){
-    plotM = "qq"
-    dev.new(width = 8, height = 5, noRStudioGD = TRUE)
-    par(mfrow = c(1,2))
+    plotM = "none"
+    grDevices::dev.new(width = 4, height = 5, noRStudioGD = TRUE)
+    #par(mfrow = c(1,2))
   }else{plotM = "none"}
   MVDw15 <- mvn(newRes, subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, 
                 scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", 

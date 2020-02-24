@@ -64,8 +64,8 @@ getCovL<- function(df){
   
   ##### store data
   
-  conCSV <- weeklyConc
-  preCSV <- na.omit(preDaily)
+  conCSV <- MESgenCov::weeklyConc
+  preCSV <- na.omit(MESgenCov::preDaily)
   
   #filter out unnecessary columns
   conCSVf  <- conCSV[,-5:-14]
@@ -110,6 +110,7 @@ getCovL<- function(df){
     conCSVf[,4+i]     <- conCSV[,obsiCSV] #
     colnames(conCSVf) <- c(cn, obs[i])
   }
+  rm(conCSV)
   
   #filter by date
   conCSVf   <- conCSVf[conCSVf$yrmonth>=strtYrMo,]
@@ -176,8 +177,8 @@ getCovL<- function(df){
       site <- site[site[,4 + obsi]>-0.0001,]
       site <- site[order(site$dateon),]
       preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
-      conCSV$siteID <- toupper(conCSV$siteID) #combine data
-      preCSV$siteID <- toupper(preCSV$siteID)
+      conCSVf$siteID <- toupper(conCSVf$siteID) #combine data
+      preCSVf$siteID <- toupper(preCSVf$siteID)
       
       #aaggregates weekly precipitation
       if (obs[obsi] == "ph"){bi = 1}else{bi = 0}
@@ -186,7 +187,7 @@ getCovL<- function(df){
       
       #aggregate precipitation data monthly and get concentration values
       if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
-      }else{       sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
+      }#else{       sitem <- weeklyConc(bi,site,siObs,obs,obsi,startdate)}
       
       #Remove outliers inputted  outliersbySite
       if (length(outlierDatesbySite) != 0){
@@ -281,7 +282,7 @@ getCovL<- function(df){
       #plot all sites if indicated by user
       if(plotAll == T){
         if(s%%4 == 1 && s!=1){
-          dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+          grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:length(vpred)
@@ -326,11 +327,14 @@ getCovL<- function(df){
   
   #produce multivariate analysis
   graphics::par(mar=c(1,1,1,1))
-  MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
+  MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, 
+              alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",
+              univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", 
+              bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
   MVDw
   if(plotMulti){
-    dev.new(width = 8, height = 5, noRStudioGD = TRUE)
+    grDevices::dev.new(width = 4, height = 5, noRStudioGD = TRUE)
     #graphics::par(mfrow=c(1,2))
     MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = FALSE, showNewData = FALSE)
     MVDw
@@ -388,7 +392,7 @@ getCovL<- function(df){
   if(plotB == T){
     tc <- 1:totT
     for (g in 1:length(sitePlot[[1]])){
-      dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+      grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
       graphics::par(mar=c(4,4,2,2))
       i = match(sitePlot[[1]][g], cati)
       if(!is.na(i)){

@@ -129,7 +129,7 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
       #plot all sites if indicated by user
       if(plotAll == T){
         if(ss%%4 == 1 && ss!=1){
-          dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+          grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:totT
@@ -167,13 +167,17 @@ for( i in 2:(length(cati)*length(obs))){
   univariateTest <- MVDw$univariateNormality
   MVDw
 if(plotMulti){
-    dev.new(width = 8, height = 5, noRStudioGD = TRUE)
+  grDevices::dev.new(width = 4, height = 5, noRStudioGD = TRUE)
     #graphics::par(mfrow=c(1,2))
-    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = FALSE, showNewData = FALSE)
+    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE,
+                tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", 
+                univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", 
+                multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
+                showOutliers = FALSE, showNewData = FALSE)
     MVDw
 }
 if(plotB == T && (sitePlot[1] %contain% cati)){
-    dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+  grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
     graphics::par(mar=c(4,4,2,2))
     i = match(sitePlot[1], cati)
     if(!is.na(i)){

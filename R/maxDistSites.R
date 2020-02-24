@@ -33,12 +33,12 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
     message("Location data missing")
   }
 
-  preCSV <- stats::na.omit(preDaily)
-  geoCSV <- NADPgeo[,-2]
+  preCSV <- stats::na.omit(MESgenCov::preDaily)
+  geoCSV <- MESgenCov::NADPgeo[,-2]
   colnames(geoCSV) <- c("siteID","lat","long")
 
   #filter out unnecessary columns
-  conCSVf  <- weeklyConc[,-5:-14]
+  conCSVf  <- MESgenCov::weeklyConc[,-5:-14]
   conCSVf  <- stats::na.omit(conCSVf)
   preCSVf  <- preCSV[preCSV$amount>-0.0001,]   #filter out -/ive values
   rm(preCSV) # for efficiency
@@ -50,13 +50,13 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   ###i.e. if comp = c("SO4","NO3") then only dates for which both elements have data will be included
   #tic()
   for (i in 1:length(obs)){
-    obsiCSV <- match(obs[i],colnames(weeklyConc))
+    obsiCSV <- match(obs[i],colnames(MESgenCov::weeklyConc))
     if(is.na(obsiCSV)){
-      str1 <- paste(colnames(weeklyConc[,5:14]), collapse = ", ")
+      str1 <- paste(colnames(MESgenCov::weeklyConc[,5:14]), collapse = ", ")
       stop("Argument used in column comp of input data frame is not available. These are the options: ph, ", str1,".", collapse = " ")
     }
     cn <- colnames(conCSVf)
-    conCSVf[,4+i] <- weeklyConc[,obsiCSV]
+    conCSVf[,4+i] <- MESgenCov::weeklyConc[,obsiCSV]
     colnames(conCSVf) <- c(cn, obs[i])
     conCSVf <- conCSVf[conCSVf[,4+i]>-0.0001,] #filter out -/ive values
   }
@@ -128,7 +128,7 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
     finalList <- rbind(finalList,remainSDC[1,])
     remainSDC <- remainSDC[-1,]
   }
-  reList <- list("finalList" = finalList$siteID, "data" = siteDataCount, "startDate" = startdateStr,
+  reList <- list("finalList" = finalList$siteID[1:maxn], "data" = siteDataCount, "startDate" = startdateStr,
                  "endDate" = enddateStr, "comp" = comp)
   return(reList)
 }

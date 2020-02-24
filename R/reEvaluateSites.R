@@ -1,8 +1,9 @@
 #' analyzes data without outliers
 #' @keywords internal
 
-reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
-                            y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite, outSites,cati,strtYrMo,endYrMo,diffYrm){
+reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
+                            y0,ylog,e,mods,vpredl, outlierDatesbySite, 
+                            outSites,cati,strtYrMo,endYrMo){
   df <- dfInp
   weeklyB      <- df$weeklyB
   startdateStr <- df$startdateStr
@@ -20,6 +21,9 @@ reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
   r            <- df$r
   k            <- df$k
   
+  if (is.null(sitePlot)){
+    plotB = FALSE
+  }else{plotB = TRUE}
   
   rv    <- integer(5); if(r != 0){rv[1:r] <- rep(1L,r)}
   kv    <- integer(5); if(k != 0){kv[1:k] <- rep(1L,k)}
@@ -44,7 +48,7 @@ reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
     si <- s
     s  <- s + (obsi-1)*length(cati)
 
-    sitem <- cbind(t2[[s]], 0, y0[[s]],y2[[s]])
+    sitem <- cbind(tafNA[[s]], rep(0, times= length(tafNA[[s]])),y0[[s]],ylog[[s]]) 
     colnames(sitem) <- c("t","filler","Conc","log")
     sitem <- data.frame(sitem)
       if (length(outlierDatesbySite) != 0){
@@ -62,10 +66,13 @@ reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
           oc = i #outlier site counter #skips t
         }
       }
-      p <- 1
+
       #deterministic univariate model for one site
-      t2 <- sitem$t
+      p <- 1
       sitem     <- stats::na.omit(sitem)
+      tafNA[[s]]   <- sitem$t
+      y0[[s]]   <- sitem$Conc
+      ylog[[s]]   <- sitem$log
       y1 <- sitem[,4]
       t <- sitem$t
       cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
@@ -80,7 +87,6 @@ reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
       er  <- residuals(mod)
       summary(mod)
       mods[[s]] <- summary(mod)
-      to[[s]] <- t
       
       #fill in missing t
       inter1 <- unname(mod$coefficients[1])
@@ -90,48 +96,36 @@ reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
       fe   <- 1:(maxfi) #fake end to keep loop going #ignore if t=48
       t    <- c(t,fe)
       y1   <- c(y1,fe)
-      y2i  <- c(y1,fe)
       er   <- c(er,fe)
       
       kl    <- 1
-      #store model coefficients
-      coef <- NULL
-      for(j in 1:16){
-        if(is.na(unname(mod$coefficients[j]))){
-          coef <- c(coef, inter1)
-        }else{coef <- c(coef, unname(mod$coefficients[j]))}
-      }
       
       #store predicted value vector
-      if(length(to[[s]]) < totT){
+      options(warn = 2)
+      if(length(tafNA[[s]]) < totT){
         new   <- data.frame(1:totT)
         vpred <- predict(mod,newdata = new)
       }else{vpred <- predict(mod)}
+      options(warn = 0)
       
+      #fill in missing values
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
           cy1 <- vpred[i-fi]
-          #cy2 + rnorm(1,0,se1) #for maintaining variance
           ry1 <- y1[kl:length(y1)]
-          ry2i <- y2i[kl:length(y2i)]
           e0 <- rnorm(1,0,se1)
           y1 <- c(y1[1:kl-1],cy1+e0,ry1)
-          y2i <- c(y2i[1:kl-1],NA,ry2i) #missing = 0 rn, rnorm(1,0,se1)
           er <- c(er[1:kl-1],e0,er[kl:length(er)]) # change to stochastic #change to 0
           t  <- c(t[1:kl-1],i-fi,t[kl:length(t)])
           fi <- fi + 1
         }else{kl = kl + 1}
       }
-      if(length(t)>totT){t<-t[1:totT];y2i<-y2i[1:totT]; y1 <- y1[1:totT];er<-er[1:totT]}
+      if(length(t)>totT){t<-t[1:totT]; y1 <- y1[1:totT];er<-er[1:totT]}
       
       #store parameters
-      tl[[s]]    <- t
       e[[s]]     <- unname(er)
-      y[[s]]     <- y1
-      #y2[[s]]    <- y2i
-      co[[s]]    <- coef
-      inter[s]   <- inter1
       vpredl[[s]] <- vpred
+      
       #plot all sites if indicated by user
       if(plotAll == T){
         if(ss%%4 == 1 && ss!=1){
@@ -139,9 +133,9 @@ reEvaluateSites <- function(dfInp,t2,to,startdate,enddate,totT,
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:totT
-        graphics::plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::plot(sitem$t,sitem$log, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         graphics::par(new=TRUE)
-        graphics::lines(x = tc, y = vpred, col ="blue")
+        graphics::lines(x = tc, y = vpred, col =3)
       }
     
     si <- si + 1
@@ -174,11 +168,22 @@ for( i in 2:(length(cati)*length(obs))){
   MVDw
 if(plotMulti){
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
-    graphics::par(mfrow=c(1,2))
-    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
+    #graphics::par(mfrow=c(1,2))
+    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = FALSE, showNewData = FALSE)
     MVDw
+}
+if(plotB == T && (sitePlot[1] %contain% cati)){
+    dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+    graphics::par(mar=c(4,4,2,2))
+    i = match(sitePlot[1], cati)
+    if(!is.na(i)){
+      tc <- 1:totT
+      graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
+      graphics::par(new=TRUE)
+      graphics::lines(x = 1:length(vpredl[[i]]), y = vpredl[[i]], col ="orange")
+    }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
   }
-big_list <- list("mvn" = MVDw, "residualData" = dfRes, "cov" = covxx, "pred" = vpredl)
+  
+big_list <- list("mvn" = MVDw, "residualData" = dfRes, "cov" = covxx, "pred" = vpredl, "newMod" = mods)
 return(big_list)
 }
-

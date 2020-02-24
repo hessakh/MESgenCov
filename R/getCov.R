@@ -10,11 +10,11 @@
 #'@export
 #'@examples
 #'   getCov(structure(list(
-#'weeklyB = FALSE, startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
+#' startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
 #'comp = "SO4", use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL,
 #'siteOutliers = NULL,  removeOutliers = NULL, plotMulti = FALSE,  sitePlot = NULL,
 #'plotAll = FALSE, writeMat = FALSE, seas = 12, r = 1, k = 1),
-#'.Names = c("weeklyB","startdateStr","enddateStr","comp","use36","siteAdd",
+#'.Names = c("startdateStr","enddateStr","comp","use36","siteAdd",
 #'"outlierDatesbySite","siteOutliers","removeOutliers","plotMulti","sitePlot",
 #'"plotAll","writeMat","seas","r","k")  ,row.names = c(NA, -1L) 
 #',class = "data.frame"))
@@ -37,7 +37,7 @@ getCov <- function(df){
   
   ##code for optional input functionality
   dfInp <- df
-  weeklyB      <- df$weeklyB
+  weeklyB      <- FALSE#df$weeklyB
   startdateStr <- df$startdateStr
   enddateStr   <- df$enddateStr
   comp         <- df$comp
@@ -78,7 +78,7 @@ getCov <- function(df){
   enddate    <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
   strtYrMo   <- format(startdate,"%Y%m")
   endYrMo    <- format(enddate,  "%Y%m")
-  diffYrm      <- mondf(startdate,enddate)+1
+  diffYrm    <- mondf(startdate,enddate)+1
   nonneg <- 0
   if(weeklyB){
     totT <- as.integer(difftime(enddate,startdate,units="weeks"))
@@ -132,15 +132,13 @@ getCov <- function(df){
   kv    <- integer(5); if(k != 0){kv[1:k] <- rep(1L,k)}
   kk    <- k
   
-  t2   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp before na.omit
-  to   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
-  y0   <- vector(mode="list", length=(length(cati)*length(obs))) #monthly/weekly concentraition values
-  y    <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line 	omitted NA values
-  y2   <- vector(mode="list", length=(length(cati)*length(obs))) #model output for predicted line w/ NA values
-  co   <- vector(mode="list", length=(length(cati)*length(obs))) #model coefficient
-  inter<- vector(mode="numeric",length=(length(cati)*length(obs))) #model intercept
+  tNA     <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp before na.omit
+  tafNA   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
+  y0      <- vector(mode="list", length=(length(cati)*length(obs))) #monthly/weekly concentraition values
+  ylogNA  <- vector(mode="list", length=(length(cati)*length(obs))) #log data w/ NA values
+  ylog    <- vector(mode="list", length=(length(cati)*length(obs))) #log data
   e    <- vector(mode="list", length=(length(cati)*length(obs))) #error
-  e2   <- vector(mode="list", length=(length(cati)*length(obs))) #error
+  e2   <- vector(mode="list", length=(length(cati)*length(obs))) #error with NA
   mods <- vector(mode="list", length=(length(cati)*length(obs))) #model summaries
   vpredl <- vector(mode="list", length=(length(cati)*length(obs))) #list of vector of predictions
   
@@ -164,15 +162,13 @@ getCov <- function(df){
     
     if(nrow(conCSVk)==0 || nrow(preCSVk)==0){
       #store parameters
-      t2[[s]]     <- NA
+      tNA[[s]]     <- NA
       to[[s]]     <- NA
       e[[s]]      <- NA
       e2[[s]]     <- NA
-      y[[s]]      <- NA
+      ylog[[s]]   <- NA
       y0[[s]]     <- NA
-      y2[[s]]     <- NA
-      co[[s]]     <- NA
-      inter[s]    <- NA
+      ylogNA[[s]] <- NA
       mods[[s]]   <- NA
       vpredl[[s]] <- NA
       message(paste0("Missing data for ", cati[si]," ",obs[obsi],
@@ -192,7 +188,7 @@ getCov <- function(df){
       
       #aggregate precipitation data monthly and get concentration values
       if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
-      }else{       sitem <- weeklyConcT(bi,site,siObs,obs,obsi,startdate)}
+      }#else{       sitem <- weeklyConcT(bi,site,siObs,obs,obsi,startdate)}
       
       if (length(outlierDatesbySite) != 0){
         if(outlierDatesbySite[oc] == cati[si]){
@@ -220,12 +216,13 @@ getCov <- function(df){
         nonneg = 0.00001
       }
       sitem[,4] <- log(sitem[,3] + abs(minsite3) + nonneg)
-      y0[[s]]   <- sitem[,3]
-      y2[[s]]   <- sitem[,4]
-      t2[[s]]        <- sitem$t #same as t for monthly different for weekly
+      ylogNA <- sitem[,4]
+      #moved y0, ylogNA from here to avoid NAs in plot call
       sitem     <- stats::na.omit(sitem)
-      colnames(sitem) <- c(cn, "log")
-      y1 <- sitem[,4]
+      colnames(sitem) <- c(cn[1:2],"Conc" ,"log")
+      y0[[s]]     <- sitem$Conc
+      ylog[[s]]   <- sitem$log
+      tafNA[[s]]  <- sitem$t #same as t for monthly different for weekly
       t <- sitem$t
       cyclicTrend <- (I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p))*kv[1]   +
                      (I(cos(t*(2*pi/seas)*2)^p) + I(sin(t*(2*pi/seas)*2)^p))*kv[2] +
@@ -233,13 +230,12 @@ getCov <- function(df){
                      (I(cos(t*(2*pi/seas)*4)^p) + I(sin(t*(2*pi/seas)*4)^p))*kv[4] +
                      (I(cos(t*(2*pi/seas)*5)^p) + I(sin(t*(2*pi/seas)*5)^p))*kv[5] +
                    t*rv[1] + (t^2)*rv[2] + (t^3)*rv[3] + (t^4)*rv[4] + (t^5)*rv[5]
-      df  <- data.frame(cbind(y1,cyclicTrend))
-      df  <- data.frame(cbind(df,t))
-      mod <- definelm(y1,t,df,r,kk,seas)
+      dfc  <- data.frame(cbind(sitem$log,cyclicTrend))
+      dfc  <- data.frame(cbind(dfc,t))
+      mod <- definelm(sitem$log,t,dfc,r,kk,seas)
       er  <- stats::residuals(mod)
       summary(mod)
       mods[[s]] <- summary(mod)
-      to[[s]]  <- t
       tc       <- data.frame(1:totT)
       currResi <- data.frame(cbind(t,er))
       colnames(currResi) <- c("t","error")
@@ -247,56 +243,42 @@ getCov <- function(df){
       cR       <- merge(tc,currResi,by = "t", all = TRUE) #merge(dfRes,currRes, by = "t", all = F)
       e2[[s]]  <- cR[,2]
       
-      #fill in missing t
-      inter1 <- unname(mod$coefficients[1])
+      #fill in missing t ##there's a better way of doing this
       se1  <- sqrt(deviance(mod)/df.residual(mod))
       fi   <- 0 #to loop back
       maxfi<- totT - length(t)
       fe   <- 1:(maxfi) #fake end to keep loop going #ignore if t=48
       t    <- c(t,fe)
-      y1   <- c(y1,fe)
-      y2i  <- c(y1,fe)
+      y1   <- c(sitem$log,fe)
       er   <- c(er,fe)
-      
       kl    <- 1
-      #store model coefficients
-      coef <- NULL
-      for(j in 1:16){
-        if(is.na(unname(mod$coefficients[j]))){
-          coef <- c(coef, inter1)
-        }else{coef <- c(coef, unname(mod$coefficients[j]))}
-      }
-      
+
       #store predicted value vector
-      if(length(to[[s]]) < totT){
+      options(warn = 2)
+      if(length(tafNA[[s]]) < totT){
         new   <- data.frame(1:totT)
-        vpred <- stats::predict(mod,newdata = new)
-      }else{vpred <- stats::predict(mod)}
+        vpred <- predict(mod,newdata = new)
+      }else{vpred <- predict(mod)}
+      options(warn = 0)
 
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
           cy1 <- vpred[i-fi]
-          #cy2 + rnorm(1,0,se1) #for maintaining variance
           ry1 <- y1[kl:length(y1)]
-          ry2i <- y2i[kl:length(y2i)]
           set.seed(i+s)
           e0 <- rnorm(1,0,se1)
           y1 <- c(y1[1:kl-1],cy1+e0,ry1)
-          y2i <- c(y2i[1:kl-1],NA,ry2i) #missing = 0 rn, stats::rnorm(1,0,se1)
           er <- c(er[1:kl-1],e0,er[kl:length(er)]) # change to stochastic #change to 0
           t  <- c(t[1:kl-1],i-fi,t[kl:length(t)])
           fi <- fi + 1
         }else{kl = kl + 1}
       }
-      if(length(t)>totT){t<-t[1:totT];y2i<-y2i[1:totT]; y1 <- y1[1:totT];er<-er[1:totT]}
+      if(length(t)>totT){t<-t[1:totT]; y1 <- y1[1:totT];er<-er[1:totT]}
       
       #store parameters
       e[[s]]     <- unname(er)
-      y[[s]]     <- y1
-      y2[[s]]    <- y2i
-      co[[s]]    <- coef
-      inter[s]   <- inter1
       vpredl[[s]] <- vpred
+      
       #plot all sites if indicated by user
       if(plotAll == T){
         if(s%%4 == 1 && s!=1){
@@ -304,10 +286,9 @@ getCov <- function(df){
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:length(vpred)
-        graphics::plot(t,y1, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::plot(sitem$t,sitem$log, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         graphics::par(new=TRUE)
         graphics::lines(x = tc, y = vpred, col ="blue")
-        #graphics::plot(t, vpred, type="l",col ="blue",ylim=c(-2, 3),ylab = "", xlab ="")
       }
     }
     si <- si + 1
@@ -343,13 +324,13 @@ getCov <- function(df){
   
   #produce multivariate analysis
   graphics::par(mar=c(1,1,1,1))
-  MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.1, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
+  MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
   MVDw
   if(plotMulti){
     dev.new(width = 8, height = 5, noRStudioGD = TRUE)
     graphics::par(mfrow=c(1,2))
-    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.1, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
+    MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", multivariateOutlierMethod = "quan", bc = FALSE, bcType = "rounded", showOutliers = TRUE, showNewData = FALSE)
     MVDw
   }
   rosnerT   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
@@ -386,14 +367,15 @@ getCov <- function(df){
         outlierDatesbySite <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$outBySite
         outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
         if(length(outlierDatesbySite) >= 2){
-          updatedPars        <- reEvaluateSites(dfInp, t2,to,startdate,enddate,totT,
-                                                y0,y,y2,co,inter,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo,totT)
+          updatedPars        <- reEvaluateSites(dfInp, tafNA,startdate,enddate,totT,
+                                                y0,ylog,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
           #update all outputs here
           dfRes   <- updatedPars$residualData
           covxx   <- updatedPars$cov
           MVDw    <- updatedPars$mvn
           vpredl  <- updatedPars$pred
-        }
+          mods    <- updatedPars$newMods 
+        }else{message("No univariate outliers")}
       }
     }else{
       missingSites <- setdiff(removeOutlier[[1]], siteOutliers[[1]])
@@ -403,15 +385,17 @@ getCov <- function(df){
   }
   #plots
   if(plotB == T){
-    dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-    graphics::par(mar=c(4,4,2,2))
-    i = match(sitePlot[1], cati)
-    if(!is.na(i)){
-      tc <- 1:totT
-      graphics::plot(t2,y2[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
-      graphics::par(new=TRUE)
-      graphics::lines(x = tc, y = vpredl[[i]], col ="red")
-    }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
+    tc <- 1:totT
+    for (g in 1:length(sitePlot[[1]])){
+      dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+      graphics::par(mar=c(4,4,2,2))
+      i = match(sitePlot[[1]][g], cati)
+      if(!is.na(i)){
+        graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[[1]][g]))
+        graphics::par(new=TRUE)
+        graphics::lines(x = tc, y = vpredl[[i]], col ="red")
+      }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
+    }
   }
   if(writeMat){
     write.mat(covxx,filename = "covSites.mat")

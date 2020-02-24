@@ -1,7 +1,8 @@
 #'@keywords internal
 #'@importFrom   stats lm
-definelm <- function(y1,t,df,r,k,seas) {
+definelm <- function(y1,t,dfc,r,k,seas) {
   p <-  1
+  df<-dfc
   if(r == 1){
     if(k == 1){
       mod <- lm(y1 ~ I(cos(t*(2*pi/seas))^p)   + I(sin(t*(2*pi/seas))^p) +

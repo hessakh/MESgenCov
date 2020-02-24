@@ -19,11 +19,11 @@ gamma version with optional inputs
 }
 \examples{
   getCovL(structure(list(
-weeklyB = FALSE, startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
+startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
 comp = "SO4", use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL,
 siteOutliers = NULL,  removeOutliers = NULL, plotMulti = FALSE,  sitePlot = NULL,
 plotAll = FALSE, writeMat = FALSE, seas = 12, r = 1, k = 1),
-.Names = c("weeklyB","startdateStr","enddateStr","comp","use36","siteAdd",
+.Names = c("startdateStr","enddateStr","comp","use36","siteAdd",
 "outlierDatesbySite","siteOutliers","removeOutliers","plotMulti","sitePlot",
 "plotAll","writeMat","seas","r","k")  ,row.names = c(NA, -1L) 
 ,class = "data.frame"))

@@ -13,14 +13,13 @@
 #' @examples getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","N")
 
 getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
-#tic()
   #get data if it's not in the working directory
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({utils::data("weeklyCSV"); utils::data("preDailyCSV");load("weeklyCSV.rda"); load("preDailyCSV.rda")})
+  if(!exists("weeklyConc") || !exists("preDaily")){
+    try({utils::data("weeklyConc"); utils::data("preDaily")})
   }
   #check, still doesn't exist?
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    message("Missing files, running code that downloads necessary files from the NADP site")
+  if(!exists("weeklyConc") || !exists("preDaily")){
+    message("Missing files),#running code that downloads necessary files from the NADP site")
     #getDataOffSite()
   }
   #get data if it's not in the working directory
@@ -32,33 +31,28 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
     message("Location data missing")
   }
 
-  conCSV <- weeklyCSV
-  preCSV <- stats::na.omit(preDailyCSV)
-  geoCSV <- NADPgeo
-  colnames(geoCSV) <- c("siteID","city","lat","long")
+  preCSV <- stats::na.omit(preDaily)
+  geoCSV <- NADPgeo[,-2]
+  colnames(geoCSV) <- c("siteID","lat","long")
 
   #filter out unnecessary columns
-  conCSVf  <- conCSV[,-6:-31]
+  conCSVf  <- weeklyConc[,-5:-14]
   conCSVf  <- stats::na.omit(conCSVf)
-  preCSVf  <- preCSV[,-1]
-  preCSVf  <- preCSVf[preCSVf$amount>-0.0001,]   #filter out -/ive values
-
+  preCSVf  <- preCSV[preCSV$amount>-0.0001,]   #filter out -/ive values
+  rm(preCSV)
+  
   obs    <- comp
-#toc() 0.65 secs
-  #add back desired columns based on input in obs e.g add back SO4, pH, NO3 etc.
-  ###Note that this will only keep data for dates where all comp data is present
-  ###i.e. if comp = c("SO4","NO3") then only dates for which both elements have data will be included
-#tic()
+
   for (i in 1:length(obs)){
-    obsiCSV <- match(obs[i],colnames(conCSV))
+    obsiCSV <- match(obs[i],colnames(weeklyConc))
     if(is.na(obsiCSV)){
-      str1 <- paste(colnames(conCSV[, seq(9, ncol(conCSV)-5, 2)]), collapse = ", ")
+      str1 <- paste(colnames(weeklyConc[,5:14]), collapse = ", ")
       stop("Argument used in column comp of input data frame is not available. These are the options: ph, ", str1,".",collapse = " ")
     }
     cn <- colnames(conCSVf)
-    conCSVf[,5+i] <- conCSV[,obsiCSV]
+    conCSVf[,4+i] <- weeklyConc[,obsiCSV]
     colnames(conCSVf) <- c(cn, obs[i])
-    conCSVf <- conCSVf[conCSVf[,5+i]>-0.0001,] #filter out -/ive values
+    conCSVf <- conCSVf[conCSVf[,4+i]>-0.0001,] #filter out -/ive values
   }
   # #0.103 secs
 
@@ -80,10 +74,10 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
   preCSVf <- preCSVf[preCSVf$endtime   <=d2,]
 
   #get sites from each data set
-  conCSV$siteID <- toupper(conCSV$siteID)
-  preCSV$siteID <- toupper(preCSV$siteID)
-  sitesCon <- unique(conCSV$siteID)
-  sitesPre <- unique(preCSV$siteID)
+  conCSVf$siteID <- toupper(conCSVf$siteID)
+  preCSVf$siteID <- toupper(preCSVf$siteID)
+  sitesCon <- unique(conCSVf$siteID)
+  sitesPre <- unique(preCSVf$siteID)
 
   #get common sites from weekly and daily data
   commonSites <- intersect(sitesCon,sitesPre)
@@ -114,7 +108,7 @@ getSites <- function(startdateStr,enddateStr,maxn,mins,comp,optR){
     siteDataCount <- siteDataCount[siteDataCount$long>=-100,]
     siteDataCount <- siteDataCount[siteDataCount$lat>=39.5,]
   }
-#toc()
+  
   #final list of sites
   if((dim(siteDataCount)[1]) < maxn && (dim(siteDataCount)[1])>0){
     finalSites <- siteDataCount$siteID

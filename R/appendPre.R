@@ -2,7 +2,7 @@
 #' @keywords internal
 appendPre <- function(site,preCSVs,obs,obsi,siObs,bi){
 	j <- 1
-    k <- 1
+  k <- 1
 	if(bi == 1){
 		site[,5+obsi] <- (10^-(site[,4+obsi]))*100794 #convert pH to H+ mg/L
 		colnames(site)[5 + siObs] <- "H+ Conc"
@@ -29,4 +29,4 @@ appendPre <- function(site,preCSVs,obs,obsi,siObs,bi){
     	  colnames(site)[6 + siObs+bi] <-"H+ Vol"
     	}else{colnames(site)[6 + siObs+bi] <- paste(obs[obsi],"Vol",sep="")}
     return(site)
-	}
+}

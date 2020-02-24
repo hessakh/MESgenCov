@@ -15,17 +15,15 @@
 #' @examples maxDistSites("01/01/83 00:00","12/31/86 00:00",50,100,"SO4",1)
 
 maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
-  #tic()
   #get data if it's not in the working directory
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    try({utils::data("weeklyCSV",envir = environment()); utils::data("preDailyCSV",envir = environment())})
+  if(!exists("weeklyConc") || !exists("preDaily")){
+    try({utils::data("weeklyConc",envir = environment()); utils::data("preDaily",envir = environment())})
   }
   #check, still doesn't exist?
-  if(!exists("weeklyCSV") || !exists("preDailyCSV")){
-    message("Missing files, running code that downloads necessary files from the NADP site")
-    getDataOffSite()
+  if(!exists("weeklyConc") || !exists("preDaily")){
+    message("Missing files")#, running code that downloads necessary files from the NADP site")
+    #getDataOffSite()
   }
-
   #get data if it's not in the working directory
   if(!exists("NADPgeo")){
     try({utils::data("NADPgeo",envir = environment())})
@@ -35,41 +33,37 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
     message("Location data missing")
   }
 
-  conCSV <- weeklyCSV
-  preCSV <- stats::na.omit(preDailyCSV)
-  geoCSV <- NADPgeo
-  colnames(geoCSV) <- c("siteID","city","lat","long")
-  #toc() #0.914 sec if data is already loaded if not 26 sec
-  #tic()
+  preCSV <- stats::na.omit(preDaily)
+  geoCSV <- NADPgeo[,-2]
+  colnames(geoCSV) <- c("siteID","lat","long")
+
   #filter out unnecessary columns
-  conCSVf  <- conCSV[,-6:-31]
+  conCSVf  <- weeklyConc[,-5:-14]
   conCSVf  <- stats::na.omit(conCSVf)
-  preCSVf  <- preCSV[,-1]
-  preCSVf  <- preCSVf[preCSVf$amount>-0.0001,]   #filter out -/ive values
+  preCSVf  <- preCSV[preCSV$amount>-0.0001,]   #filter out -/ive values
+  rm(preCSV) # for efficiency
 
   obs    <- comp
-  #toc() #0.65 secs
+
   #add back desired columns based on input in obs e.g add back SO4, pH, NO3 etc.
   ###Note that this will only keep data for dates where all comp data is present
   ###i.e. if comp = c("SO4","NO3") then only dates for which both elements have data will be included
   #tic()
   for (i in 1:length(obs)){
-    obsiCSV <- match(obs[i],colnames(conCSV))
+    obsiCSV <- match(obs[i],colnames(weeklyConc))
     if(is.na(obsiCSV)){
-      str1 <- paste(colnames(conCSV[, seq(9, ncol(conCSV)-5, 2)]), collapse = ", ")
+      str1 <- paste(colnames(weeklyConc[,5:14]), collapse = ", ")
       stop("Argument used in column comp of input data frame is not available. These are the options: ph, ", str1,".", collapse = " ")
     }
     cn <- colnames(conCSVf)
-    conCSVf[,5+i] <- conCSV[,obsiCSV]
+    conCSVf[,4+i] <- weeklyConc[,obsiCSV]
     colnames(conCSVf) <- c(cn, obs[i])
-    conCSVf <- conCSVf[conCSVf[,5+i]>-0.0001,] #filter out -/ive values
+    conCSVf <- conCSVf[conCSVf[,4+i]>-0.0001,] #filter out -/ive values
   }
-  #toc() #0.103 secs
-  #tic()
+
+  #format input
   startdate <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
   enddate   <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
-  #toc()
-  #transform date into date format w/ time
 
   #filter by date
   strtYrMo  <- format(startdate,"%Y%m")
@@ -83,11 +77,11 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   preCSVf <- preCSVf[preCSVf$starttime >=d1,]
   preCSVf <- preCSVf[preCSVf$endtime   <=d2,]
 
-  #get sites from each data set
-  conCSV$siteID <- toupper(conCSV$siteID)
-  preCSV$siteID <- toupper(preCSV$siteID)
-  sitesCon <- unique(conCSV$siteID)
-  sitesPre <- unique(preCSV$siteID)
+  #get sites from each filtered data set
+  conCSVf$siteID <- toupper(conCSVf$siteID)
+  preCSVf$siteID <- toupper(preCSVf$siteID)
+  sitesCon <- unique(conCSVf$siteID)
+  sitesPre <- unique(preCSVf$siteID)
 
   #get common sites from weekly and daily data
   commonSites <- intersect(sitesCon,sitesPre)
@@ -109,33 +103,31 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   colnames(siteDataCount) <- c("siteID","count")
   siteDataCount <- merge(siteDataCount, geoCSV, by="siteID")
   siteDataCount <- siteDataCount[order(siteDataCount$count,decreasing = TRUE),]
-  finalList     <- siteDataCount[startingSite,]
+  finalList     <- siteDataCount[startingSite,] #adds site with the most data
   remainSDC     <- siteDataCount[-startingSite,]
   trueMax       <- min(dim(siteDataCount)[1],maxn)
-  #print(dim(siteDataCount)[1])
-  if(trueMax < maxn){#toc()
+
+  if(trueMax < maxn){
     stop(paste("Number of sites with data for inputted dates is less than specified max, number of sites found",
                   dim(siteDataCount)[1]))}
-  for(i in 1:trueMax-1){
+  for(i in 1:trueMax-1){# find farthest maxn-1 sites to startingSite and included sites
     l1 <- dim(remainSDC)[1]
     for(j in 1:l1){ #one more for loop here to sum through final list, maybe switch up loops
       l2 <- dim(finalList)[1]
       partialDist <- 0
       tempVec <- NULL
       for(m in 1:l2){
-        tempVec <- c(tempVec,sqrt((finalList[m,4]-remainSDC[j,4])^2 + (finalList[m,5]-remainSDC[j,5])^2))
-        remainSDC[j,6] <- partialDist  + sqrt((finalList[m,4]-remainSDC[j,4])^2 + (finalList[m,5]-remainSDC[j,5])^2)
-        partialDist    <- remainSDC[j,6]
+        tempVec <- c(tempVec,sqrt((finalList[m,3]-remainSDC[j,3])^2 + (finalList[m,4]-remainSDC[j,4])^2))
+        remainSDC[j,5] <- partialDist  + sqrt((finalList[m,3]-remainSDC[j,3])^2 + (finalList[m,4]-remainSDC[j,4])^2)
+        partialDist    <- remainSDC[j,5]
       }
-      remainSDC[j,6] <- min(tempVec)
-      #print(remainSDC[1:5,])
+      remainSDC[j,5] <- min(tempVec) #distance to closest site in finalList
     }
-    colnames(remainSDC) <- c("siteID", "count", "city", "lat", "long", "dist")
-    remainSDC <- remainSDC[order(remainSDC$dist,decreasing = TRUE),]
-    finalList <- rbind(finalList,remainSDC[1,1:5])
+    colnames(remainSDC) <- c("siteID", "count",  "lat", "long", "dist")
+    remainSDC <- remainSDC[order(remainSDC$dist,decreasing = TRUE),1:4]
+    finalList <- rbind(finalList,remainSDC[1,])
     remainSDC <- remainSDC[-1,]
   }
-  finalList <- finalList[1:maxn,]
   reList <- list("finalList" = finalList$siteID, "data" = siteDataCount, "startDate" = startdateStr,
                  "endDate" = enddateStr, "comp" = comp)
   return(reList)

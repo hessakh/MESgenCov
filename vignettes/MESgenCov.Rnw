@@ -79,14 +79,14 @@ U.S.A. Our R package makes use of the weekly data measuring  mg/L of chemicals, 
 
 
 <<chunk1, include=TRUE, eval=TRUE>>=
- data("weeklyCSV")
- data("preDailyCSV")
+ data("weeklyConc")
+ data("preDaily")
 @
 
 A full description of the data can be obtained at \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-weekly-Meta.pdf}{NADP/NTN weekly meta}. For a full description of the daily precipitation data, see \href{http://NADP.slh.wisc.edu/data/ntn/meta/ntn-daily-Meta.pdf}{NADP/NTN daily meta}. Small snapshots of the data can also be viewed using:
 
 <<chunk2,include=TRUE,eval=TRUE>>=
-  weeklyCSV[1:6,c(1:4,9)]
+  weeklyConc[1:5,1:5]
 @
 
 This outputs the first 6 rows, first 4 columns and 9th column of the weekly raw data, columns 5 to 8 contain data that isn't relevant to our analysis.
@@ -134,8 +134,8 @@ The function \texttt{getCov} produces the following outputs:
 %
     <<message=FALSE, echo=FALSE, warning=FALSE, eval=TRUE>>=
     text_tbl2 <- data.frame(
-    Output = c("cov", "listMod", "sites", "mvn","univariateTest", "residualData",  "residualDataNA", "rosnerTest", "pred"),
-    Definition = c( "Covariance matrix produced by univariate model residuals", "List of univariate model summaries produced by lm()", "List of sites that were analyzed", "Output of the MVN package","univariate test output, also by the MVN package", "Data frame of residuals produced by the univariate model",  "Data frame of residuals, where missing values are ledt as NA", "Output of the rosner test for outlier analysis produced by the EnvStats package", "List of predicted values produced by the univariate model for each site")
+    Output = c("cov", "listMod", "sites", "mvn","univariateTest", "residualData",  "residualDataNA", "rosnerTest", "pred","noutliers"),
+    Definition = c( "Covariance matrix produced by univariate model residuals", "List of univariate model summaries produced by lm()", "List of sites that were analyzed", "Output of the MVN package","univariate test output, also by the MVN package", "Data frame of residuals produced by the univariate model",  "Data frame of residuals, where missing values are ledt as NA", "Output of the rosner test for outlier analysis produced by the EnvStats package", "List of predicted values produced by the univariate model for each site","Number of outliers detected by the outlier analysis, default is 0 if no sites are analyzed for outliers")
     )
  @
 
@@ -214,12 +214,13 @@ For all sites,
 \item Covariance matrix
 %%%%Parsing results
 <<chunkCovResult,include=TRUE,eval=TRUE>>=
-  df$use36          <- FALSE
-  df$siteAdd        <- list(c("OH71", "WV18", "MI53"))
-  df$sitePlot       <- NULL
-  df$siteOutliers   <- NULL
-  df$removeOutliers <- NULL
-  g                 <- getCov(df)
+  df$use36              <- FALSE
+  df$siteAdd            <- list(c("OH71", "WV18", "MI53"))
+  df$sitePlot           <- NULL
+  df$siteOutliers       <- NULL
+  df$outlierDatesbySite <- NULL
+  df$removeOutliers     <- NULL
+  g                     <- getCov(df)
   round(g$cov,digits = 4)
 @
 
@@ -317,10 +318,12 @@ The function \texttt{maxDistSites()} prioritizes sites that are farther away fro
   data("dfRes50")
   loutput <- lambertWtransform(dfRes = dfRes50, plotMulti = FALSE, writeMat = FALSE)
   loutput$mvn$multivariateNormality
-  loutput$cov[1:5,1:5]
+  round(loutput$cov[1:5,1:5],digits = 4)
   loutput$newResiduals[1:5,1:5]
   loutput$univariateTest[1:5,]
 @
+
+
 
  \begin{enumerate}
    \item \texttt{loutput\$mvn} will show the results of applying the multivariate analysis by the MVN package

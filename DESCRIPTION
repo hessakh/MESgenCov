@@ -12,7 +12,9 @@ Imports: MVN, stringr, lubridate, EnvStats, rmatio, LambertW
 Suggests: 
     knitr,
     rmarkdown,
-    pkgKitten
+    pkgKitten,
+    kableExtra,
+    magrittr
 VignetteBuilder: knitr
 Description: This package performs multivariate normality tests on cavariance matricies produced by pollutant monitoring data.
             Using the MVN and EnvStats package a user can asses the normality of the multivariate data and make changes to gaussianize the final multivariate distribution.

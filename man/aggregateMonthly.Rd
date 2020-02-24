@@ -4,7 +4,7 @@
 \alias{aggregateMonthly}
 \title{This function takes a dataframe with weekly precipitation and concentration values,}
 \usage{
-aggregateMonthly(bi, site, siObs, obs, obsi, totT, strtYrMo, diffyrm1)
+aggregateMonthly(bi, site, siObs, obs, obsi, totT, strtYrMo)
 }
 \description{
 This function takes a dataframe with weekly precipitation and concentration values,

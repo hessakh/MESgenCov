@@ -91,7 +91,7 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
   
   #produce univatiate tests for transformed data
   if(plotMulti){
-    plotM = "none"
+    plotM = "qq"
     grDevices::dev.new(width = 4, height = 5, noRStudioGD = TRUE)
     #par(mfrow = c(1,2))
   }else{plotM = "none"}

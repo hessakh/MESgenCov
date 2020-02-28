@@ -185,7 +185,7 @@ if(plotMulti){
                 univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", 
                 multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
                 showOutliers = FALSE, showNewData = FALSE)
-    title(sub="Plot without outliers")
+    graphics::title(sub="Plot without outliers")
 }
 if(plotB && (cati %contain% sitePlot[[1]])){
   tc <- 1:totT

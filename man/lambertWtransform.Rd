@@ -2,22 +2,22 @@
 % Please edit documentation in R/lambertWtransform.R
 \name{lambertWtransform}
 \alias{lambertWtransform}
-\title{returns LambertW transformed residuals}
+\title{Returns LambertW transformed residuals}
 \usage{
 lambertWtransform(dfRes, plotMulti, writeMat)
 }
 \arguments{
-\item{dfRes}{dataframe,}
+\item{dfRes}{Dataframe of residuals (can take NA values)}
 
-\item{plotMulti}{Binary,}
+\item{plotMulti}{Binary, TRUE to plot the multivariate qq plot}
 
-\item{writeMat}{Binary,}
+\item{writeMat}{Binary, TRUE to write a mat file of the resulting covariance matrix with the name "covSitesLambertW.mat"}
 }
 \value{
-Returns a dataframe of LambertW transformed residuals
+Returns a dataframe of LambertW transformed residuals, multivariate and univariate variables analysis, and the resulting covariance matrix
 }
 \description{
-returns LambertW transformed residuals
+Returns LambertW transformed residuals
 }
 \examples{
 lambertWtransform(data.frame(matrix(runif(n = 100), ncol = 5 )),plotMulti = FALSE, writeMat = FALSE)

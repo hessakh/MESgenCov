@@ -1,6 +1,5 @@
-## get data
 
-#' returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
+#' Returns a vector of siteID's of sites with the most data for the specified time period for specific chemicals or pH
 #' @import lubridate
 #' @import   stats
 #' @importFrom utils data

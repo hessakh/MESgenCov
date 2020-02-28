@@ -2,7 +2,7 @@
 #' @keywords internal
 
 reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
-                            y0,ylog,e,mods,vpredl, outlierDatesbySite, 
+                            y0,ylog,e,e2,mods,vpredl, outlierDatesbySite, 
                             outSites,cati,strtYrMo,endYrMo){
   df <- dfInp
   weeklyB      <- df$weeklyB
@@ -87,6 +87,12 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
       er  <- residuals(mod)
       summary(mod)
       mods[[s]] <- summary(mod)
+      tc       <- data.frame(1:totT)
+      currResi <- data.frame(cbind(t,er))
+      colnames(currResi) <- c("t","error")
+      colnames(tc)      <- c("t")
+      cR       <- merge(tc,currResi,by = "t", all = TRUE) #merge(dfRes,currRes, by = "t", all = F)
+      e2[[s]]  <- cR[,2]
       
       #fill in missing t
       inter1 <- unname(mod$coefficients[1])
@@ -127,7 +133,7 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
       vpredl[[s]] <- vpred
       
       #plot all sites if indicated by user
-      if(plotAll == T){
+      if(plotAll){
         if(ss%%4 == 1 && ss!=1){
           grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           graphics::par(mfrow = c(2,2))}
@@ -142,22 +148,28 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
   }
   ##################
 options(warn=-1)
-dfRes <- NULL
-si    <- 2
-obsi  <- 1
-tc <- 1:totT
-#loop to create dataframe of all residuals
-dfRes <- cbind(tc,e[[1]])
-colnames(dfRes) <- c("t",paste(cati[1],obs[1], sep=""))
-for( i in 2:(length(cati)*length(obs))){
-  if (i%%(length(cati)) == 1){obsi = obsi + 1; si = 1}
-  if(!is.na(e[[i]])){
-    currRes <- cbind(tc,e[[i]])
-    colnames(currRes) <- c("t",paste0(cati[si],obs[obsi]))
-    dfRes   <- merge(dfRes,currRes, by = "t", all = F)
+  dfRes  <- NULL
+  dfResNA <- NULL
+  si    <- 2
+  obsi  <- 1
+  tc <- 1:totT
+  #loop to create dataframe of all residuals
+  dfRes <- cbind(tc,e[[1]])
+  dfResNA <- cbind(tc,e2[[1]]) #with NA values
+  colnames(dfRes) <- c("t",paste(cati[1],obs[1], sep=""))
+  colnames(dfResNA) <- c("t",paste(cati[1],obs[1], sep=""))
+  for( i in 2:(length(cati)*length(obs))){
+    if (i%%(length(cati)) == 1){obsi = obsi + 1; si = 1}
+    if(!is.na(e[[i]])){
+      currRes <- cbind(tc,e[[i]])
+      colnames(currRes) <- c("t",paste0(cati[si],obs[obsi]))
+      dfRes   <- merge(dfRes,currRes, by = "t", all = F)
+    }
+    currRes2 <- cbind(tc,e2[[i]])
+    colnames(currRes2) <- c("t",paste0(cati[si],obs[obsi]))
+    dfResNA   <- merge(dfResNA,currRes2, by = "t", all.x = TRUE,all.y = TRUE)
+    si <- si+1
   }
-  si <- si+1
-}
 #create covariance matrix
   covxx <- data.frame(cov(dfRes[,-1]))
   options(warn=0)
@@ -165,7 +177,6 @@ for( i in 2:(length(cati)*length(obs))){
   graphics::par(mar=c(1,1,1,1))
   MVDw <- mvn(dfRes[,-1], subset = NULL, mvnTest = "mardia", covariance = TRUE, tol = 1e-25, alpha = 0.5, scale = FALSE, desc = TRUE, transform = "none", univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "none", multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", showOutliers = FALSE,showNewData = FALSE)
   univariateTest <- MVDw$univariateNormality
-  MVDw
 if(plotMulti){
   grDevices::dev.new(width = 4, height = 5, noRStudioGD = TRUE)
     #graphics::par(mfrow=c(1,2))
@@ -174,20 +185,19 @@ if(plotMulti){
                 univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", 
                 multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
                 showOutliers = FALSE, showNewData = FALSE)
-    MVDw
 }
-if(plotB == T && (sitePlot[1] %contain% cati)){
+if(plotB && (sitePlot[[1]] %contain% cati)){
   grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
     graphics::par(mar=c(4,4,2,2))
-    i = match(sitePlot[1], cati)
+    i = match(sitePlot[[1]][g], cati)
     if(!is.na(i)){
       tc <- 1:totT
       graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[1]))
       graphics::par(new=TRUE)
-      graphics::lines(x = 1:length(vpredl[[i]]), y = vpredl[[i]], col ="orange")
+      graphics::lines(x = tc, y = vpredl[[i]], col = 3)
     }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
   }
   
-big_list <- list("mvn" = MVDw, "residualData" = dfRes, "cov" = covxx, "pred" = vpredl, "newMod" = mods)
+big_list <- list("mvn" = MVDw, "residualData" = dfRes, "residualDataNA" = dfResNA,"cov" = covxx, "pred" = vpredl, "newMod" = mods)
 return(big_list)
 }

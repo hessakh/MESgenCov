@@ -2,19 +2,19 @@
 % Please edit documentation in R/getCovL.R
 \name{getCovL}
 \alias{getCovL}
-\title{creates covariance matrix from normalized NADP monitor data
+\title{Creates covariance matrix from normalized NADP monitor data
 gamma version with optional inputs}
 \usage{
 getCovL(df)
 }
 \arguments{
-\item{df}{data frame of input}
+\item{df}{data frame of input arguments specified in vignette and default set of inputs are in data("defultInput")}
 }
 \value{
-List of model summaries at each site, covariance matrix and plots if inputted as T
+List of model summaries at each site, covariance matrix, sites analyzed, predicted values by univariate models, data frame of residuals and more (see vignette for full list)
 }
 \description{
-creates covariance matrix from normalized NADP monitor data
+Creates covariance matrix from normalized NADP monitor data
 gamma version with optional inputs
 }
 \examples{

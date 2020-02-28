@@ -1,12 +1,12 @@
-#'creates covariance matrix from normalized NADP monitor data
+#'Creates covariance matrix from normalized NADP monitor data
 #'gamma version with optional inputs
 #'@import   MVN
 #'@importFrom rmatio write.mat
 #'@importFrom EnvStats rosnerTest
 #'@importFrom utils data
-#'@param df data frame of input
+#'@param df data frame of input arguments specified in vignette and default set of inputs are in data("defultInput")
 
-#'@return   List of model summaries at each site, covariance matrix and plots if inputted as T
+#'@return   List of model summaries at each site, covariance matrix, sites analyzed, predicted values by univariate models, data frame of residuals and more (see vignette for full list)
 #'@export
 #'@examples
 #'   getCov(structure(list(
@@ -242,6 +242,13 @@ getCov <- function(df){
       cR       <- merge(tc,currResi,by = "t", all = TRUE) #merge(dfRes,currRes, by = "t", all = F)
       e2[[s]]  <- cR[,2]
       
+      #store predicted value vector
+      options(warn = 2)
+      if(length(tafNA[[s]]) < totT){
+        vpred <- predict(mod,newdata = tc)
+      }else{vpred <- predict(mod)}
+      options(warn = 0)
+      
       #fill in missing t ##there's a better way of doing this
       se1  <- sqrt(deviance(mod)/df.residual(mod))
       fi   <- 0 #to loop back
@@ -251,14 +258,6 @@ getCov <- function(df){
       y1   <- c(sitem$log,fe)
       er   <- c(er,fe)
       kl    <- 1
-
-      #store predicted value vector
-      options(warn = 2)
-      if(length(tafNA[[s]]) < totT){
-        new   <- data.frame(1:totT)
-        vpred <- predict(mod,newdata = new)
-      }else{vpred <- predict(mod)}
-      options(warn = 0)
 
       for(i in 1:(totT+maxfi-1)){
         if(t[kl] != i-fi){ #if t is skipped
@@ -279,7 +278,7 @@ getCov <- function(df){
       vpredl[[s]] <- vpred
       
       #plot all sites if indicated by user
-      if(plotAll == T){
+      if(plotAll){
         if(s%%4 == 1 && s!=1){
           grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
           graphics::par(mfrow = c(2,2))}
@@ -335,6 +334,21 @@ getCov <- function(df){
                 bc = FALSE, bcType = "rounded", showOutliers = FALSE, showNewData = FALSE)
     MVDw
   }
+  #sitePlot
+  if(plotB){
+    tc <- 1:totT
+    for (g in 1:length(sitePlot[[1]])){
+      grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
+      graphics::par(mar=c(4,4,2,2))
+      i = match(sitePlot[[1]][g], cati)
+      if(!is.na(i)){
+        graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[[1]][g]))
+        graphics::par(new=TRUE)
+        graphics::lines(x = tc, y = vpredl[[i]], col ="blue")
+      }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
+    }
+  }
+  #outlier analysis
   rosnerT   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
   siteRosner <- NULL
   noutliers  <- 0
@@ -370,7 +384,7 @@ getCov <- function(df){
         outSites           <- takeOutAllOutliers(sitesOut,rosnerResult = rosnerT,cati)$sites
         if(length(outlierDatesbySite) >= 2){
           updatedPars        <- reEvaluateSites(dfInp, tafNA,startdate,enddate,totT,
-                                                y0,ylog,e,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
+                                                y0,ylog,e,e2,mods,vpredl, outlierDatesbySite,outSites,cati,strtYrMo,endYrMo)
           #update all outputs here
           dfRes   <- updatedPars$residualData
           dfRes2  <- updatedPars$residualDataNA
@@ -386,25 +400,11 @@ getCov <- function(df){
       warning(paste0("Outliers were not removed because there exists site(s) ",
                      str2," in removeOutliers that are not in siteOutliers."))}
   }
-  #plots
-  if(plotB == T){
-    tc <- 1:totT
-    for (g in 1:length(sitePlot[[1]])){
-      grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
-      graphics::par(mar=c(4,4,2,2))
-      i = match(sitePlot[[1]][g], cati)
-      if(!is.na(i)){
-        graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[[1]][g]))
-        graphics::par(new=TRUE)
-        graphics::lines(x = tc, y = vpredl[[i]], col ="red")
-      }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
-    }
-  }
   if(writeMat){
     write.mat(covxx,filename = "covSites.mat")
   }
   my_list <- list("listMod" = mods, "cov" = covxx, "sites" = cati,
                   "mvn" = MVDw, "univariateTest" = univariateTest, "residualData" = dfRes[,-1],"residualDataNA" = dfRes2[,-1],
-                  "rosnerTest" = rosnerT, "pred" = vpredl, "monthlyRaw" = sitem,"weeklyRaw" = site, "nOutliers"= noutliers)
+                  "rosnerTest" = rosnerT, "pred" = vpredl, "nOutliers"= noutliers)
   return(my_list)
 }

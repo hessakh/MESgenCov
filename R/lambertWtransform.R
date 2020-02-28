@@ -1,12 +1,12 @@
 
-#' returns LambertW transformed residuals
+#' Returns LambertW transformed residuals
 #' @import LambertW
 #' @importFrom MVN mvn
-#' @param dfRes       dataframe, 
-#' @param plotMulti   Binary, 
-#' @param writeMat    Binary, 
+#' @param dfRes       Dataframe of residuals (can take NA values) 
+#' @param plotMulti   Binary, TRUE to plot the multivariate qq plot
+#' @param writeMat    Binary, TRUE to write a mat file of the resulting covariance matrix with the name "covSitesLambertW.mat"
 
-#' @return             Returns a dataframe of LambertW transformed residuals
+#' @return             Returns a dataframe of LambertW transformed residuals, multivariate and univariate variables analysis, and the resulting covariance matrix
 #' @export
 #' @examples lambertWtransform(data.frame(matrix(runif(n = 100), ncol = 5 )),plotMulti = FALSE, writeMat = FALSE)
 
@@ -27,6 +27,7 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
   options(warn=-1)
   for (i in 1:nosites){
     # Replicate parts of the analysis in Goerg (2011)
+    resNA   <- concdf[,i]
     yL <- na.omit(concdf[,i])
     try(fitgmmhh <- IGMM(yL, type = "hh"),silent = TRUE)
     if(!is.null(fitgmmhh)){
@@ -66,11 +67,20 @@ lambertWtransform <- function (dfRes,plotMulti,writeMat){
       }else{
         fitgmm <- fitgmms
       }
-      newResi <- fillInLambert(concdf[,i],fitgmm, maxT) 
-      x       <- get_input(newResi, fitgmm$tau)
+      #newResi <- fillInLambert(concdf[,i],fitgmm, maxT) 
+      newResi <- yL
+      x       <- get_input(newResi, fitgmm$tau,return.u = FALSE)
+      sig     <- sd(x)
+      set.seed(123)
+      for (j in 1:length(resNA)){
+        if(is.na(resNA[j])){
+          if (j == 1){x  <-c(rnorm(1,0,sig),x[j:length(x)])
+          }else{
+            x  <-c(x[1:j-1],rnorm(1,0,sig),x[j:length(x)])
+          }
+        }
+      }
     }
-    #print(mean(x))
-    x <- x - mean(x)
     newRes <-  cbind(newRes,x)
     fitgmm <- NULL
     xhh    <- NULL

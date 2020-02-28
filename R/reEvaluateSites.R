@@ -185,18 +185,19 @@ if(plotMulti){
                 univariateTest = "SW",  univariatePlot = "none", multivariatePlot = "qq", 
                 multivariateOutlierMethod = "none", bc = FALSE, bcType = "rounded", 
                 showOutliers = FALSE, showNewData = FALSE)
+    title(sub="Plot without outliers")
 }
-if(plotB && (sitePlot[[1]] %contain% cati)){
+if(plotB && (cati %contain% sitePlot[[1]])){
   tc <- 1:totT
   for (g in 1:length(sitePlot[[1]])){
     grDevices::dev.new(width = 6, height = 5.5, noRStudioGD = T, unit = "in")
     graphics::par(mar=c(4,4,2,2))
     i = match(sitePlot[[1]][g], cati)
     if(!is.na(i)){
-      graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[[1]][g]))
+      graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration without outliers",main = toString(sitePlot[[1]][g]))
       graphics::par(new=TRUE)
-      graphics::lines(x = tc, y = vpredl[[i]], col ="blue")
-    }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
+      graphics::lines(x = tc, y = vpredl[[i]], col = 3)
+    }else if(plotB){warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}
   }
 }
   

@@ -9,13 +9,8 @@ Depends: R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true
 Imports: MVN, stringr, lubridate, EnvStats, rmatio, LambertW
-Suggests: 
-    knitr,
-    rmarkdown,
-    pkgKitten,
-    kableExtra,
-    magrittr
-VignetteBuilder: knitr
+Suggests: R.rsp
+VignetteBuilder: R.rsp
 Description: This package performs multivariate normality tests on cavariance matricies produced by pollutant monitoring data.
             Using the MVN and EnvStats package a user can asses the normality of the multivariate data and make changes to gaussianize the final multivariate distribution.
             The aim of this package is to streamline the process of getting a validinput for the Maximum Entropy Sampling Problem (MESP).

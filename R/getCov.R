@@ -284,7 +284,7 @@ getCov <- function(df){
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:length(vpred)
-        graphics::plot(sitem$t,sitem$log, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::plot(sitem$t,sitem$log, ylab="Log concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         graphics::par(new=TRUE)
         graphics::lines(x = tc, y = vpred, col ="blue")
       }
@@ -342,7 +342,7 @@ getCov <- function(df){
       graphics::par(mar=c(4,4,2,2))
       i = match(sitePlot[[1]][g], cati)
       if(!is.na(i)){
-        graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration",main = toString(sitePlot[[1]][g]),xlab = "t (months)")
+        graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log concentration",main = toString(sitePlot[[1]][g]),xlab = "t (months)")
         graphics::par(new=TRUE)
         graphics::lines(x = tc, y = vpredl[[i]], col ="blue")
       }else{warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}

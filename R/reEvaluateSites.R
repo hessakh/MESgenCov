@@ -139,7 +139,7 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
           graphics::par(mfrow = c(2,2))}
         graphics::par(mar=c(4,4,2,2))
         tc <- 1:totT
-        graphics::plot(sitem$t,sitem$log, ylab="Log sulfate concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
+        graphics::plot(sitem$t,sitem$log, ylab="Log concentration",main = paste(cati[si],obs[obsi]), xlab = "t (months)")
         graphics::par(new=TRUE)
         graphics::lines(x = tc, y = vpred, col =3)
       }
@@ -194,7 +194,7 @@ if(plotB && (cati %contain% sitePlot[[1]])){
     graphics::par(mar=c(4,4,2,2))
     i = match(sitePlot[[1]][g], cati)
     if(!is.na(i)){
-      graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log sulfate concentration without outliers",main = toString(sitePlot[[1]][g]),xlab = "t (months)")
+      graphics::plot(tafNA[[i]],ylog[[i]], ylab="Log concentration without outliers",main = toString(sitePlot[[1]][g]),xlab = "t (months)")
       graphics::par(new=TRUE)
       graphics::lines(x = tc, y = vpredl[[i]], col = 3)
     }else if(plotB){warning("Site in sitePlot was not in the vector of sites that were analyzed. Make sure the site ID in sitePlot is in the column siteAdd of the input data frame.")}

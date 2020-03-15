@@ -4,8 +4,24 @@
 \alias{reEvaluateSites}
 \title{analyzes data without outliers}
 \usage{
-reEvaluateSites(dfInp, tafNA, startdate, enddate, totT, y0, ylog, e, e2,
-  mods, vpredl, outlierDatesbySite, outSites, cati, strtYrMo, endYrMo)
+reEvaluateSites(
+  dfInp,
+  tafNA,
+  startdate,
+  enddate,
+  totT,
+  y0,
+  ylog,
+  e,
+  e2,
+  mods,
+  vpredl,
+  outlierDatesbySite,
+  outSites,
+  cati,
+  strtYrMo,
+  endYrMo
+)
 }
 \description{
 analyzes data without outliers

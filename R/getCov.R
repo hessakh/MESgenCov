@@ -8,9 +8,7 @@
 
 #'@return   List of model summaries at each site, covariance matrix, sites analyzed, predicted values by univariate models, data frame of residuals and more (see vignette for full list)
 #'@export
-#'@examples
-#'   getCov(structure(list(
-#' startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
+#'@examples getCov(structure(list(startdateStr = "01/01/83 00:00", enddateStr   = "12/31/86 00:00", 
 #'comp = "SO4", use36 = TRUE, siteAdd = NULL, outlierDatesbySite = NULL,
 #'siteOutliers = NULL,  removeOutliers = NULL, plotMulti = FALSE,  sitePlot = NULL,
 #'plotAll = FALSE, writeMat = FALSE, seas = 12, r = 1, k = 1),
@@ -349,10 +347,11 @@ getCov <- function(df){
     }
   }
   #outlier analysis
-  rosnerT   <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
-  siteRosner <- NULL
-  noutliers  <- 0
+  rosnerT     <- vector(mode="list", length=(length(cati)*length(obs))) #time stamp
+  siteRosner  <- NULL
+  noutliers   <- "Outlier test not enabled, add sites to siteOutliers in the following format list(c(\"IN41\",\"OH71\"))"
   if(showOutliers == TRUE){
+    noutliers <- 0
     if (length(siteOutliers[[1]])==1){
       #find outliers in each site
       #Store Site outliers

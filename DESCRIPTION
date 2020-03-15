@@ -16,4 +16,4 @@ Description: This package performs multivariate normality tests on cavariance ma
             Using the MVN and EnvStats package a user can asses the normality of the multivariate data and make changes to gaussianize the final multivariate distribution.
             The aim of this package is to streamline the process of getting a validinput for the Maximum Entropy Sampling Problem (MESP).
 License: GPL (>= 2)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2

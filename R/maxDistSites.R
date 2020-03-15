@@ -1,5 +1,6 @@
+## get data
 
-#' Returns a vector of siteID's of sites with the most data for the specified time period for specific chemicals or pH
+#' returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
 #' @import lubridate
 #' @import   stats
 #' @importFrom utils data
@@ -31,19 +32,19 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   if(!exists("NADPgeo")){
     message("Location data missing")
   }
-
+  
   preCSV <- stats::na.omit(MESgenCov::preDaily)
   geoCSV <- MESgenCov::NADPgeo[,-2]
   colnames(geoCSV) <- c("siteID","lat","long")
-
+  
   #filter out unnecessary columns
   conCSVf  <- MESgenCov::weeklyConc[,-5:-14]
   conCSVf  <- stats::na.omit(conCSVf)
   preCSVf  <- preCSV[preCSV$amount>-0.0001,]   #filter out -/ive values
   rm(preCSV) # for efficiency
-
+  
   obs    <- comp
-
+  
   #add back desired columns based on input in obs e.g add back SO4, pH, NO3 etc.
   ###Note that this will only keep data for dates where all comp data is present
   ###i.e. if comp = c("SO4","NO3") then only dates for which both elements have data will be included
@@ -59,34 +60,34 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
     colnames(conCSVf) <- c(cn, obs[i])
     conCSVf <- conCSVf[conCSVf[,4+i]>-0.0001,] #filter out -/ive values
   }
-
+  
   #format input
   startdate <- as.POSIXct(startdateStr, format = "%m/%d/%y %H:%M")
   enddate   <- as.POSIXct(enddateStr  , format = "%m/%d/%y %H:%M")
-
+  
   #filter by date
   strtYrMo  <- format(startdate,"%Y%m")
   endYrMo   <- format(enddate,  "%Y%m")
   conCSVf   <- conCSVf[conCSVf$yrmonth>=strtYrMo,]
   conCSVf   <- conCSVf[conCSVf$yrmonth<=endYrMo,]
-
+  
   #filter dates for precipitation data
   d1 <- startdate
   d2 <- enddate
   preCSVf <- preCSVf[preCSVf$starttime >=d1,]
   preCSVf <- preCSVf[preCSVf$endtime   <=d2,]
-
+  
   #get sites from each filtered data set
   conCSVf$siteID <- toupper(conCSVf$siteID)
   preCSVf$siteID <- toupper(preCSVf$siteID)
   sitesCon <- unique(conCSVf$siteID)
   sitesPre <- unique(preCSVf$siteID)
-
+  
   #get common sites from weekly and daily data
   commonSites <- intersect(sitesCon,sitesPre)
   # not included sites
   setDiff <- union(setdiff(sitesCon,sitesPre),setdiff(sitesPre,sitesCon))
-
+  
   #count data for each site
   siteDataCount <- data.frame(matrix(ncol=2, nrow=0))
   k <- 0 #skip counter
@@ -105,30 +106,38 @@ maxDistSites <- function(startdateStr,enddateStr,maxn,mins,comp,startingSite){
   finalList     <- siteDataCount[startingSite,] #adds site with the most data
   remainSDC     <- siteDataCount[-startingSite,]
   trueMax       <- min(dim(siteDataCount)[1],maxn)
-
+  
   if(trueMax < maxn){
     stop(paste("Number of sites with data for inputted dates is less than specified max, number of sites found",
-                  dim(siteDataCount)[1]))}
-  for(i in 1:trueMax-1){# find farthest maxn-1 sites to startingSite and included sites
-    l1 <- dim(remainSDC)[1]
-    for(j in 1:l1){ #one more for loop here to sum through final list, maybe switch up loops
-      l2 <- dim(finalList)[1]
-      partialDist <- 0
-      tempVec <- NULL
-      for(m in 1:l2){
-        tempVec <- c(tempVec,sqrt((finalList[m,3]-remainSDC[j,3])^2 + (finalList[m,4]-remainSDC[j,4])^2))
-        remainSDC[j,5] <- partialDist  + sqrt((finalList[m,3]-remainSDC[j,3])^2 + (finalList[m,4]-remainSDC[j,4])^2)
-        partialDist    <- remainSDC[j,5]
+               dim(siteDataCount)[1]))}
+#make distance matrix
+  distMat <- data.frame(matrix(ncol=length(siteDataCount$siteID), nrow=length(siteDataCount$siteID)))
+  rownames(distMat) <- siteDataCount$siteID
+  colnames(distMat) <- siteDataCount$siteID
+  for(g in 1:length(siteDataCount$siteID)){
+    for(h in g:length(siteDataCount$siteID)){
+      if(g == h){
+        distMat[g,g] <- 10^7
+      }else{
+        distMat[g,h] <- sqrt((siteDataCount[g,3]-siteDataCount[h,3])^2 + (siteDataCount[g,4]-siteDataCount[h,4])^2)
+        distMat[h,g] <-  distMat[g,h]
       }
-      remainSDC[j,5] <- min(tempVec) #distance to closest site in finalList
     }
-    colnames(remainSDC) <- c("siteID", "count",  "lat", "long", "dist")
-    remainSDC <- remainSDC[order(remainSDC$dist,decreasing = TRUE),1:4]
-    finalList <- rbind(finalList,remainSDC[1,])
-    remainSDC <- remainSDC[-1,]
   }
+#
+  for(i in 1:maxn-1){
+    tempMat <- distMat[finalList$siteID,remainSDC$siteID] #only consider dists to sites in list
+    tempVec <- NULL
+    for(j in 1:length(remainSDC$siteID)){
+      #store min dist to finalSites in tempVec
+      tempVec <- c(tempVec,min(tempMat[,j]))
+    }
+    keepSitei <- match(max(tempVec), tempVec)
+    finalList <- rbind(finalList,remainSDC[keepSitei,])#ignore indicies here for now
+    remainSDC <- remainSDC[-keepSitei,]
+  }
+  #code is done, add colum with maxmin dist and test per favore
   reList <- list("finalList" = finalList$siteID[1:maxn], "data" = siteDataCount, "startDate" = startdateStr,
                  "endDate" = enddateStr, "comp" = comp)
   return(reList)
 }
-

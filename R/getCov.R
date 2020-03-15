@@ -19,6 +19,7 @@
 
 
 getCov <- function(df){
+  start_time <- Sys.time()
   #get data if it's not in the working directory
   if(!exists("weeklyConc") || !exists("preDaily")){
     try({utils::data("weeklyConc",envir = environment()); utils::data("preDaily",envir = environment())})
@@ -149,6 +150,7 @@ getCov <- function(df){
         oma = c(0,0,0,0) + 0.1,
         mar = c(0,0,0,0) + 0.1)
   }
+
   for(s in 1:(length(cati)*length(obs))){
     #change obs
     if (s%%(length(cati)) == 1 && s != 1){obsi = obsi + 1; si = 1}
@@ -156,7 +158,7 @@ getCov <- function(df){
     #filter site (weekly concentration data)
     conCSVk <- conCSVf[conCSVf$siteID == toString(cati[si]),]
     preCSVk <- preCSVf[preCSVf$siteID == toString(cati[si]),]
-    
+
     if(nrow(conCSVk)==0 || nrow(preCSVk)==0){
       #store parameters
       tNA[[s]]     <- NA
@@ -177,7 +179,6 @@ getCov <- function(df){
       site <- site[order(site$dateon),]
       preCSVk <- preCSVk[order(preCSVk$starttime,decreasing=F),]
 
-      
       #aaggregates weekly precipitation
       if (obs[obsi] == "ph"){bi = 1}else{bi = 0}
       site <- appendPre(site,preCSVk,obs,obsi,siObs,bi)
@@ -186,6 +187,7 @@ getCov <- function(df){
       #aggregate precipitation data monthly and get concentration values
       if(!weeklyB){sitem <- aggregateMonthly(bi,site,siObs,obs,obsi,totT,strtYrMo)
       }#else{       sitem <- weeklyConcT(bi,site,siObs,obs,obsi,startdate)}
+
       
       if (length(outlierDatesbySite) != 0){
         if(outlierDatesbySite[oc] == cati[si]){
@@ -202,6 +204,7 @@ getCov <- function(df){
           oc = i #outlier site counter #skips t
         }
       }
+      start_time <- Sys.time()
       p <- 1
       #deterministic univariate model for one site
       cn <- colnames(sitem)
@@ -239,7 +242,8 @@ getCov <- function(df){
       colnames(tc)      <- c("t")
       cR       <- merge(tc,currResi,by = "t", all = TRUE) #merge(dfRes,currRes, by = "t", all = F)
       e2[[s]]  <- cR[,2]
-      
+      end_time <- Sys.time()
+      #print(paste0("model time :",end_time - start_time))
       #store predicted value vector
       options(warn = 2)
       if(length(tafNA[[s]]) < totT){

@@ -8,7 +8,7 @@ gamma version with optional inputs}
 getCov(df)
 }
 \arguments{
-\item{df}{data frame of input arguments specified in vignette and default set of inputs are in data("defultInput")}
+\item{df}{data frame of input arguments specified in vignette and default set of inputs are in data("defaultInput")}
 }
 \value{
 List of model summaries at each site, covariance matrix, sites analyzed, predicted values by univariate models, data frame of residuals and more (see vignette for full list)

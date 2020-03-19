@@ -4,7 +4,7 @@ appendPre <- function(site,preCSVs,obs,obsi,siObs,bi){
 	if(bi == 1){
 		site[,5+obsi] <- (10^-(site[,4+obsi]))*100794 #convert pH to H+ mg/L
 		colnames(site)[5 + siObs] <- "H+ Conc"
-	}
+	} 
 		for (i in 1:(dim(site)[1])){
       		preTemp <- preCSVs[preCSVs$starttime>=site[i,2],]
       		preTemp <- preTemp[preTemp$endtime<=site[i,3],]

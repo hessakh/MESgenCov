@@ -2,7 +2,7 @@
 % Please edit documentation in R/getSites.R
 \name{getSites}
 \alias{getSites}
-\title{returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH}
+\title{returns a vector of siteID's of sites with the most data for the specified time period for specific chemicals or pH}
 \usage{
 getSites(startdateStr, enddateStr, maxn, mins, comp, optR)
 }
@@ -23,7 +23,7 @@ getSites(startdateStr, enddateStr, maxn, mins, comp, optR)
 Returns list of sites that have the largest amount of data for the given dates and compounds
 }
 \description{
-returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
+returns a vector of siteID's of sites with the most data for the specified time period for specific chemicals or pH
 }
 \examples{
 getSites("01/01/83 00:00","12/31/86 00:00",30,102,"SO4","N")

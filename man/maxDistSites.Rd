@@ -2,7 +2,7 @@
 % Please edit documentation in R/maxDistSites.R
 \name{maxDistSites}
 \alias{maxDistSites}
-\title{returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH}
+\title{returns a vector of siteID's of sites with the most data for the specified time period for specific chemicals or pH}
 \usage{
 maxDistSites(startdateStr, enddateStr, maxn, mins, comp, startingSite)
 }
@@ -23,7 +23,7 @@ maxDistSites(startdateStr, enddateStr, maxn, mins, comp, startingSite)
 Returns list of sites that have the largest amount of data for the given dates and pollutants
 }
 \description{
-returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
+returns a vector of siteID's of sites with the most data for the specified time period for specific chemicals or pH
 }
 \examples{
 maxDistSites("01/01/83 00:00","12/31/86 00:00",50,100,"SO4",1)

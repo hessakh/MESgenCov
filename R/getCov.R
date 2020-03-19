@@ -4,7 +4,7 @@
 #'@importFrom rmatio write.mat
 #'@importFrom EnvStats rosnerTest
 #'@importFrom utils data
-#'@param df data frame of input arguments specified in vignette and default set of inputs are in data("defultInput")
+#'@param df data frame of input arguments specified in vignette and default set of inputs are in data("defaultInput")
 
 #'@return   List of model summaries at each site, covariance matrix, sites analyzed, predicted values by univariate models, data frame of residuals and more (see vignette for full list)
 #'@export
@@ -308,11 +308,9 @@ getCov <- function(df){
   colnames(dfRes2) <- c("t",paste(cati[1],obs[1], sep=""))
   for( i in 2:(length(cati)*length(obs))){
     if (i%%(length(cati)) == 1){obsi = obsi + 1; si = 1}
-    if(!is.na(e[[i]])){
       currRes <- cbind(tc,e[[i]])
       colnames(currRes) <- c("t",paste0(cati[si],obs[obsi]))
       dfRes   <- merge(dfRes,currRes, by = "t", all = F)
-    }
     currRes2 <- cbind(tc,e2[[i]])
     colnames(currRes2) <- c("t",paste0(cati[si],obs[obsi]))
     dfRes2   <- merge(dfRes2,currRes2, by = "t", all.x = TRUE,all.y = TRUE)

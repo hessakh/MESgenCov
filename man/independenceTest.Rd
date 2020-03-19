@@ -2,18 +2,18 @@
 % Please edit documentation in R/independenceTest.R
 \name{independenceTest}
 \alias{independenceTest}
-\title{returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH}
+\title{returns a vector of siteID's of sites with the most data for the specified time period for specific compounds or pH}
 \usage{
 independenceTest(dfRes)
 }
 \arguments{
-\item{dfRes}{Data frame od residuals}
+\item{dfRes}{Data frame of residuals}
 }
 \value{
 Returns result of independence test and correlation matrix
 }
 \description{
-returns a vector of siteID's of sites with the most data for the specified time period for specific compunds or pH
+returns a vector of siteID's of sites with the most data for the specified time period for specific compounds or pH
 }
 \examples{
 independenceTest(data.frame(matrix(runif(500, min= -1, max =1), ncol=10)))

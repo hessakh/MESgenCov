@@ -1,6 +1,6 @@
 #' Daily NADP precipitation data
 #'
-#' Daily NADP data of percipitation depth in inches for all sites from 1979 to 2017.
+#' Daily NADP data of precipitation depth in inches^3 for all sites from 1979 to 2017.
 #'
 #' @docType data
 #'

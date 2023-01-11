@@ -7,7 +7,7 @@ function (bi,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
   sitem <- data.frame(matrix(ncol=3, nrow=totT))
   yrm        <- site[1,5]
   strtYrMo   <- strtoi(strtYrMo)
-  mStrt      <- (strtYrMo)%%12
+  mStrt      <- (strtYrMo)%%100
   
   #fill in t
   sitem[,2]  <- 1:totT

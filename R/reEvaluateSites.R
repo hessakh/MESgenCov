@@ -10,7 +10,7 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
   enddateStr   <- df$enddateStr
   use36        <- df$use36
   siteAdd      <- df$siteAdd
-  outlierDatesbySite <- c(outlierDatesbySite,df$outlierDatesbySite)
+  outlierDatesbySite <- c(outlierDatesbySite,df$outlierDatesbySite[[1]])
   siteOutliers <- df$siteOutliers
   comp         <- df$comp
   plotMulti    <- df$plotMulti
@@ -107,7 +107,7 @@ reEvaluateSites <- function(dfInp,tafNA,startdate,enddate,totT,
       kl    <- 1
       
       #store predicted value vector
-      options(warn = 2)
+      options(warn = -1)
       if(length(tafNA[[s]]) < totT){
         new   <- data.frame(1:totT)
         vpred <- predict(mod,newdata = new)

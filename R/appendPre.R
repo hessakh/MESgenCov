@@ -7,9 +7,12 @@ appendPre <- function(site,preCSVs,obs,obsi,siObs,bi){
 	} 
 		for (i in 1:(dim(site)[1])){
       		preTemp <- preCSVs[preCSVs$starttime>=site[i,2],]
-      		preTemp <- preTemp[preTemp$endtime<=site[i,3],]
+      		preTemp <- preTemp[preTemp$endtime <= site[i,3],]
       		p       <- sum(preTemp$amount) 
       	site[i,5 + siObs+bi] <- (p)             #record weekly preciptation amt
+      	# if (p == 0 & i>3){
+      	#   p <- mean(site[(i-3):(i-1),5 + siObs+bi])
+      	# }
       	#record chemical volume #change index here bases on obsi
       	site[i,6 + siObs+bi] <- ((p)*site[i,4+obsi+bi]) #get H+ Vol
     	}
@@ -19,3 +22,4 @@ appendPre <- function(site,preCSVs,obs,obsi,siObs,bi){
     	}else{colnames(site)[6 + siObs+bi] <- paste(obs[obsi],"Vol",sep="")}
     return(site)
 }
+

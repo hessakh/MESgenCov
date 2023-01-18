@@ -5,7 +5,7 @@
 #' @param startdateStr String, when to start analyzing data, format = "m/d/y H:M"
 #' @param enddateStr   String, when to stop analyzing data, format = "m/d/y H:M"
 #' @param maxn         Maximum number of sites required
-#' @param mins         Minimum number of data required for each site
+#' @param mins         Minimum number of weekly data required for each site
 #' @param comp         Vector of strings, strings of compounds
 #' @param optR         String, option of region "N","S","W",""
 #' @return             Returns list of sites that have the largest amount of data for the given dates and compounds

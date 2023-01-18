@@ -42,7 +42,7 @@ getCov <- function(df){
   comp         <- df$comp
   use36        <- df$use36
   siteAdd      <- df$siteAdd
-  outlierDatesbySite <- df$outlierDatesbySite
+  outlierDatesbySite <- df$outlierDatesbySite[[1]]
   siteOutliers <- df$siteOutliers
   removeOutlier <-df$removeOutliers 
   plotMulti    <- df$plotMulti
@@ -59,6 +59,16 @@ getCov <- function(df){
   if (is.null(sitePlot)){
     plotB = FALSE
   }else{plotB = TRUE}
+  
+  ##error handling
+  if (is.null(startdateStr) | is.null(enddateStr) ){
+    stop("Required input is missing check start and end date")
+  }
+  
+  if ((is.null(siteAdd) & !use36) ){
+    stop("Required input is missing check added sites")
+  }
+  
   
   ##### store data
   
@@ -78,7 +88,7 @@ getCov <- function(df){
   diffYrm    <- mondf(startdate,enddate)+1
   nonneg <- 0
   if(weeklyB){
-    totT <- as.integer(difftime(enddate,startdate,units="weeks"))
+    totT <- as.integer(difftime(enddate,startdate,units="weeks"))-1
     nonneg <- 1
     if(is.null(seas)){seas = 52}
   }else if(!(floor(mondf(startdate,enddate))==(mondf(startdate,enddate)))){
@@ -230,9 +240,16 @@ getCov <- function(df){
                      (I(cos(t*(2*pi/seas)*4)^p) + I(sin(t*(2*pi/seas)*4)^p))*kv[4] +
                      (I(cos(t*(2*pi/seas)*5)^p) + I(sin(t*(2*pi/seas)*5)^p))*kv[5] +
                    t*rv[1] + (t^2)*rv[2] + (t^3)*rv[3] + (t^4)*rv[4] + (t^5)*rv[5]
+      
+      if(df$comp != "ph"){
       dfc  <- data.frame(cbind(sitem$log,cyclicTrend))
       dfc  <- data.frame(cbind(dfc,t))
       mod <- definelm(sitem$log,t,dfc,r,kk,seas)
+      } else {
+        dfc  <- data.frame(cbind(sitem$Conc,cyclicTrend))
+        dfc  <- data.frame(cbind(dfc,t))
+        mod <- definelm(sitem$Conc,t,dfc,r,kk,seas)
+      }
       er  <- stats::residuals(mod)
       summary(mod)
       mods[[s]] <- summary(mod)
@@ -245,7 +262,7 @@ getCov <- function(df){
       end_time <- Sys.time()
       #print(paste0("model time :",end_time - start_time))
       #store predicted value vector
-      options(warn = 2)
+      options(warn = -1)
       if(length(tafNA[[s]]) < totT){
         vpred <- predict(mod,newdata = tc)
       }else{vpred <- predict(mod)}

@@ -8,7 +8,11 @@ function (bi,site,siObs,obs,obsi,totT,strtYrMo){#binary con or pH
   yrm        <- site[1,5]
   strtYrMo   <- strtoi(strtYrMo)
   mStrt      <- (strtYrMo)%%100
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> 76088de28b86ff6d0029c53ddcc66bf371db51c6
   #fill in t
   sitem[,2]  <- 1:totT
   #fill in yrmonth
